@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Closed</title>
+</head>
+<body>
+<p>Dear Team,</p>
+
+<p>We would like to inform you that the following task has been successfully closed:</p>
+
+<table style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Task Type:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${taskType}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Task Priority:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${taskPriority}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Closed By:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${closedBy}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Closed Date:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${closedDate}"></span></td>
+    </tr>
+</table>
+
+<p>Please review any related tasks or follow-ups in Taskify.</p>
+
+<p>Best regards,<br>Taskify Software</p>
+</body>
+</html>

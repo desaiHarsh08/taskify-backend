@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Forwarded</title>
+</head>
+<body>
+<p>Dear <span th:text="${assignedUserName}"></span>,</p>
+
+<p>We hope this message finds you well.</p>
+
+<p>We are pleased to inform you that a task has been forwarded to you on Taskify. Below are the details of the task:</p>
+
+<table style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Task Type:</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${taskType}"></span></td>
+    </tr>
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Task Priority:</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${taskPriority}"></span></td>
+    </tr>
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Created By:</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${createdBy}"></span></td>
+    </tr>
+</table>
+
+<p>Please log in to your Taskify account to review the task details and manage your workflow. Should you have any questions, feel free to reach out.</p>
+
+<p>Best regards,<br>Taskify Software</p>
+</body>
+</html>

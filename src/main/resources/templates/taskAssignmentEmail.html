@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Assignment Notification</title>
+</head>
+<body>
+<p>Dear <span th:text="${assignedUserName}"></span>,</p>
+<p>We hope this message finds you well. This is to inform you that you have been assigned a task via Taskify Software. The details of the task are as follows:</p>
+
+<table style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Type</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;" th:text="${taskType}"></td>
+    </tr>
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Priority</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;" th:text="${taskPriority}"></td>
+    </tr>
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Created By</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;" th:text="${createdBy}"></td>
+    </tr>
+    <tr>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Created At</th>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;" th:text="${createdAt}"></td>
+    </tr>
+</table>
+
+<p>You will be responsible for this task. Please feel free to reach out if you have any specific instructions or requirements for this task.</p>
+<p>Looking forward to your guidance and support throughout the completion of this task.</p>
+<p>Best regards,<br>Taskify Software</p>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Function Assignment Notification</title>
+</head>
+<body>
+<p>Dear <span th:text="${assignedUserName}"></span>,</p>
+
+<p>We hope this message finds you well.</p>
+
+<p>We are pleased to inform you that a function has been assigned to you on Taskify. Below are the details of the task and function:</p>
+
+<table style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Task Type:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${taskType}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Task Priority:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${taskPriority}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Function:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${functionTitle}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Due Date:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${dueDate}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Department:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${department}"></span></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Created By:</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><span th:text="${createdBy}"></span></td>
+    </tr>
+</table>
+
+<p>Please log in to your Taskify account to review the task details and manage your workflow. Should you have any questions or require further information, feel free to reach out.</p>
+
+<p>Thank you for your attention and cooperation.</p>
+
+<p>Best regards,<br>Taskify Software</p>
+</body>
+</html>
