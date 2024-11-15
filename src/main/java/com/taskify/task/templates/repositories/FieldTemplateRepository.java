@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface FieldTemplateRepository extends JpaRepository<FieldTemplateModel, Long> {
 
     @Override
-    @Cacheable(value = CacheNames.FIELD_TEMPLATE, key = "#id")
+    @Cacheable(value = CacheNames.FIELD_TEMPLATE, key = "#id", condition = "#result != null && #result.isPresent()")
     Optional<FieldTemplateModel> findById(Long id);
 
     List<FieldTemplateModel> findByFunctionTemplates(FunctionTemplateModel functionTemplate);

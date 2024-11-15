@@ -14,7 +14,7 @@ public interface TaskTemplateRepository extends JpaRepository<TaskTemplateModel,
 
 
     @Override
-    @Cacheable(value = CacheNames.TASK_TEMPLATE, key = "#id")
+    @Cacheable(value = CacheNames.TASK_TEMPLATE, key = "#id", condition = "#result != null && #result.isPresent()")
     Optional<TaskTemplateModel> findById(Long id);
 
     Optional<TaskTemplateModel> findByTitle(String title);

@@ -12,6 +12,7 @@ import com.taskify.task.instances.dtos.ColumnInstanceDto;
 import com.taskify.task.instances.dtos.FieldInstanceDto;
 import com.taskify.task.instances.models.FieldInstanceModel;
 import com.taskify.task.instances.models.FunctionInstanceModel;
+import com.taskify.task.instances.models.TaskInstanceModel;
 import com.taskify.task.instances.repositories.FieldInstanceRepository;
 import com.taskify.task.instances.repositories.FunctionInstanceRepository;
 import com.taskify.task.instances.services.ColumnInstanceServices;
@@ -21,6 +22,7 @@ import com.taskify.user.models.UserModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -209,13 +211,30 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
     public boolean deleteFieldInstance(Long id) {
         // Step 1: Check for field_instance does exist
         FieldInstanceDto foundFieldInstanceDto = this.getFieldInstanceById(id);
+        System.out.println(foundFieldInstanceDto);
         // Step 2: Delete all the column_instances
-        for (ColumnInstanceDto columnInstanceDto: foundFieldInstanceDto.getColumnInstances()) {
-            if (!this.columnInstanceServices.deleteColumnInstance(columnInstanceDto.getId())) {
-                throw new IllegalArgumentException("Unable to delete the column_instance in the process for deleting field_instance (having id: " + " " + id + ").");
+        if (foundFieldInstanceDto.getColumnInstances() != null) {
+            for (ColumnInstanceDto columnInstanceDto: foundFieldInstanceDto.getColumnInstances()) {
+                if (!this.columnInstanceServices.deleteColumnInstance(columnInstanceDto.getId())) {
+                    throw new IllegalArgumentException("Unable to delete the column_instance in the process for deleting field_instance (having id: " + " " + id + ").");
+                }
             }
         }
-        // Step 3: Delete the field_instance
+        // Step 3: Delete the activity_logs
+        Pageable pageable = PageRequest.of(1, 100);
+        Page<ActivityLogModel> pageActivityLog = this.activityLogRepository.findByFieldInstance(pageable, new FieldInstanceModel(id));
+        for (ActivityLogModel activityLogModel: pageActivityLog.getContent()) {
+            this.activityLogRepository.deleteById(activityLogModel.getId());
+        }
+        for (int i = 2; i < pageActivityLog.getTotalPages(); i++) {
+            pageable = PageRequest.of(i, 100);
+            pageActivityLog = this.activityLogRepository.findByTaskInstance(pageable, new TaskInstanceModel(id));
+            for (ActivityLogModel activityLogModel: pageActivityLog.getContent()) {
+                this.activityLogRepository.deleteById(activityLogModel.getId());
+            }
+        }
+
+        // Step 4: Delete the field_instance
         this.fieldInstanceRepository.deleteById(id);
 
         return true;

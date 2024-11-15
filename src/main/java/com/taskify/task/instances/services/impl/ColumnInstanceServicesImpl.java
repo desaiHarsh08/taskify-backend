@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -241,7 +242,7 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
     public List<ColumnInstanceDto> getColumnInstancesByFieldInstanceId(Long fieldInstanceId) {
         List<ColumnInstanceModel> columnInstanceModels = this.columnInstanceRepository.findByFieldInstance(new FieldInstanceModel(fieldInstanceId));
         if (columnInstanceModels.isEmpty()) {
-            return null;
+            return new ArrayList<>();
         }
 
         return columnInstanceModels.stream().map(this::columnInstanceModelToDto).collect(Collectors.toList());
@@ -271,6 +272,7 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
         switch (columnMetadataTemplateModel.getType()) {
             case TEXT:
             case LARGE_TEXT:
+            case TABLE:
             case EMAIL:
             case PHONE:
                 foundColumnInstanceModel.setTextValue(columnInstanceDto.getTextValue());

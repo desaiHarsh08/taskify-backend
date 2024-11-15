@@ -77,4 +77,16 @@ public class ParentCompanyController {
     public ResponseEntity<?> deleteParentCompany(@PathVariable Long id) {
         return new ResponseEntity<>(this.parentCompanyServices.deleteParentCompany(id), HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/filters")
+    public ResponseEntity<?> searchParentCompanies(@RequestParam("page") int pageNumber,
+                                                   @RequestParam String pincode,
+                                                   @RequestParam String city,
+                                                   @RequestParam String state,
+                                                   @RequestParam String companyName
+    ) {
+        return new ResponseEntity<>(this.parentCompanyServices.searchParentCompanies(companyName, city, state, pincode, pageNumber),
+                HttpStatus.OK);
+    }
+
 }

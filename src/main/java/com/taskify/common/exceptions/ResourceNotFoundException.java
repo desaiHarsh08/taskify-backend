@@ -8,9 +8,9 @@ public class ResourceNotFoundException extends RuntimeException {
         super(
                 resourceType.name() +
                         (isTemplate ? "_TEMPLATE" : " ") +
-                        "you are trying to access for " +
+                        " you are trying to access for " +
                         column + " (" + value + ")" +
-                        "doesn't exist!"
+                        " doesn't exist!"
         );
     }
 

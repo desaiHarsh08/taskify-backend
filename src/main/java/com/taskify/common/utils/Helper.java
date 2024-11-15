@@ -22,7 +22,7 @@ public class Helper {
         if (pageNumber < 1) {
             throw new IllegalArgumentException("Page number should always be greater than 0.");
         }
-
+        System.out.println("pageNumber: " + pageNumber);
         return PageRequest.of(pageNumber - 1, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "id"));
     }
 

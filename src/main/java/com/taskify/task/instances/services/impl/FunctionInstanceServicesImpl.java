@@ -129,7 +129,7 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
     @Override
     public FunctionInstanceDto createFunctionAndClose(FunctionInstanceDto functionInstanceDto, Long assignedToUserId) {
         FunctionInstanceDto newFunctionInstanceDto = this.createFunctionInstance(functionInstanceDto, assignedToUserId);
-        FunctionInstanceModel functionInstanceModel = this.modelMapper.map(functionInstanceDto, FunctionInstanceModel.class);
+        FunctionInstanceModel functionInstanceModel = this.modelMapper.map(newFunctionInstanceDto, FunctionInstanceModel.class);
         functionInstanceModel.setClosedAt(LocalDateTime.now());
         functionInstanceModel.setClosedByUser(new UserModel(assignedToUserId));
 
@@ -250,7 +250,9 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
         // Step 2: Update the attributes
         foundFunctionInstanceModel.setRemarks(functionInstanceDto.getRemarks());
         foundFunctionInstanceModel.setDueDate(functionInstanceDto.getDueDate());
-        foundFunctionInstanceModel.setDropdownTemplate(new DropdownTemplateModel(functionInstanceDto.getDropdownTemplateId()));
+        if (functionInstanceDto.getDropdownTemplateId() != null) {
+            foundFunctionInstanceModel.setDropdownTemplate(new DropdownTemplateModel(functionInstanceDto.getDropdownTemplateId()));
+        }
         // Step 2: Save the changes
         foundFunctionInstanceModel = this.functionInstanceRepository.save(foundFunctionInstanceModel);
 

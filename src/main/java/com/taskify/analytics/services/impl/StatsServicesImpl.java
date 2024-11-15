@@ -30,10 +30,13 @@ public class StatsServicesImpl implements StatsServices {
 
     @Override
     public OverallTaskStats getOverallTaskStats() {
-        Pageable pageable = PageRequest.of(1, 10);
+        Pageable pageable = PageRequest.of(1, 100);
         long totalTasks = this.taskInstanceRepository.findAll(pageable).getTotalElements();
         long customers = this.customerRepository.findAll(pageable).getTotalElements();
+
         long overdueTasks = this.taskInstanceRepository.findTaskInstancesByOverdue(pageable).getTotalElements();
+        System.out.println("overdueTasks: " + overdueTasks);
+
         long newPumpTasks = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(1L)).getTotalElements();
         long serviceTask = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(2L)).getTotalElements();
 

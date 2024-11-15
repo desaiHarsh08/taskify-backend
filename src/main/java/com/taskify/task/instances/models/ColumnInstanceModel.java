@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ColumnInstanceModel {
+public class    ColumnInstanceModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -120,7 +120,24 @@ public class CustomerServicesImpl implements CustomerServices {
                 () -> new ResourceNotFoundException(ResourceType.CUSTOMER, "id", customerDto.getId(), false)
         );
 
-        return null;
+        foundCustomer.setAddress(customerDto.getAddress());
+        foundCustomer.setCity(customerDto.getCity());
+        foundCustomer.setEmail(customerDto.getEmail());
+        foundCustomer.setName(customerDto.getName());
+        foundCustomer.setAnniversaryDate(customerDto.getAnniversaryDate());
+        foundCustomer.setBirthDate(customerDto.getBirthDate());
+        foundCustomer.setPersonOfContact(customerDto.getPersonOfContact());
+        if (customerDto.getParentCompanyId() != null) {
+            foundCustomer.setParentCompany(new ParentCompanyModel(customerDto.getParentCompanyId()));
+        }
+        foundCustomer.setState(customerDto.getState());
+        foundCustomer.setResidenceAddress(customerDto.getResidenceAddress());
+        foundCustomer.setPincode(customerDto.getPincode());
+        foundCustomer.setPhone(customerDto.getPhone());
+
+        foundCustomer = this.customerRepository.save(foundCustomer);
+
+        return this.customerModelToDto(foundCustomer);
     }
 
     // TODO: Delete the customer
@@ -128,6 +145,7 @@ public class CustomerServicesImpl implements CustomerServices {
     public boolean deleteCustomer(Long id) {
         this.getCustomerById(id);
         // Delete the task_instances
+
         return false;
     }
 
@@ -205,7 +223,10 @@ public class CustomerServicesImpl implements CustomerServices {
             return null;
         }
         CustomerDto customerDto = this.modelMapper.map(customerModel, CustomerDto.class);
-        customerDto.setParentCompanyId(customerModel.getId());
+        if (customerModel.getParentCompany() != null) {
+            customerDto.setParentCompanyId(customerModel.getParentCompany().getId());
+        }
+
 
         return customerDto;
     }

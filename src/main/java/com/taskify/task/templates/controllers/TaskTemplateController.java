@@ -4,6 +4,7 @@ import com.taskify.common.constants.CacheNames;
 import com.taskify.task.templates.dtos.TaskTemplateDto;
 import com.taskify.task.templates.services.TaskTemplateServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/task-templates")
@@ -18,6 +20,9 @@ public class TaskTemplateController {
 
     @Autowired
     private TaskTemplateServices taskTemplateServices;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @PostMapping
     @CacheEvict(value = CacheNames.ALL_TASK_TEMPLATES, allEntries = true)
@@ -37,12 +42,21 @@ public class TaskTemplateController {
         return new ResponseEntity<>(templates, HttpStatus.OK);
     }
 
+
     @GetMapping("/{id}")
     @Cacheable(value = CacheNames.TASK_TEMPLATE, key = "#id")
     public ResponseEntity<TaskTemplateDto> getTaskTemplateById(@PathVariable Long id) {
+        // Fetch TaskTemplateDto by ID
         TaskTemplateDto taskTemplateDto = taskTemplateServices.getTaskTemplateById(id);
-        return new ResponseEntity<>(taskTemplateDto, HttpStatus.OK);
+
+        // Cache the result manually if not null
+        if (taskTemplateDto != null) {
+            Objects.requireNonNull(cacheManager.getCache(CacheNames.TASK_TEMPLATE)).put(id, taskTemplateDto);
+        }
+
+        return new ResponseEntity<>(taskTemplateDto, HttpStatus.OK); // Return 200 OK with data
     }
+
 
     @GetMapping("/title")
     @Cacheable(value = CacheNames.TASK_TEMPLATE, key = "#title")

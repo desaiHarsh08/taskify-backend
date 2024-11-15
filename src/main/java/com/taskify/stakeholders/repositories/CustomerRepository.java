@@ -35,12 +35,12 @@ public interface CustomerRepository extends JpaRepository<CustomerModel, Long> {
             @Param("state") String state, Pageable pageable);
 
     @Query("SELECT c FROM CustomerModel c WHERE " +
-            "(:customerName IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:phone IS NULL OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
             "(:pincode IS NULL OR LOWER(c.pincode) LIKE LOWER(CONCAT('%', :pincode, '%'))) AND " +
             "(:personOfContact IS NULL OR LOWER(c.personOfContact) LIKE LOWER(CONCAT('%', :personOfContact, '%')))")
     Page<CustomerModel> findByNamePhonePincodePersonOfContact(
-            @Param("customerName") String customerName,
+            @Param("name") String customerName,
             @Param("phone") String phone,
             @Param("pincode") String pincode,
             @Param("personOfContact") String personOfContact,

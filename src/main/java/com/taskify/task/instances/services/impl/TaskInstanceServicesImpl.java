@@ -71,6 +71,9 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public TaskInstanceDto createTaskInstance(TaskInstanceDto taskInstanceDto) {
+
+        System.out.println(taskInstanceDto);
+
         // Step 1: Create the new task_instance from task_instance_dto
         TaskInstanceModel newTaskInstanceModel = this.modelMapper.map(taskInstanceDto, TaskInstanceModel.class);
         // Step 2: Set the customer
@@ -85,11 +88,13 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         // Step 5: Generate the abbreviation
         newTaskInstanceModel.setAbbreviation(this.generateTaskAbbreviation(taskTemplateModel, newTaskInstanceModel));
         // Step 6: Set the dropdown_template
-        DropdownTemplateModel dropdownTemplateModel = this.dropdownTemplateRepository.findByIdAndTaskTemplate(
-                        taskInstanceDto.getDropdownTemplateId(), taskTemplateModel)
-                .orElseThrow(() -> new IllegalArgumentException("Please provide a valid dropdown_template for the specified task_template"));
+        if (taskInstanceDto.getDropdownTemplateId() != null) {
+            DropdownTemplateModel dropdownTemplateModel = this.dropdownTemplateRepository.findByIdAndTaskTemplate(
+                            taskInstanceDto.getDropdownTemplateId(), taskTemplateModel)
+                    .orElseThrow(() -> new IllegalArgumentException("Please provide a valid dropdown_template for the specified task_template"));
 
-        newTaskInstanceModel.setDropdownTemplate(dropdownTemplateModel);
+            newTaskInstanceModel.setDropdownTemplate(dropdownTemplateModel);
+        }
         // Step 7: Set the created by user
         newTaskInstanceModel.setCreatedByUser(new UserModel(taskInstanceDto.getCreatedByUserId()));
         // Step 8: Set the assigned to user
@@ -201,6 +206,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findTaskInstancesByOverdue(pageable);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
+        System.out.println(pageTaskInstance.getTotalElements());
 
         return new PageResponse<>(
                 pageNumber,
@@ -337,13 +343,37 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     // TODO
     @Override
     public boolean deleteTaskInstancesByTaskTemplateId(Long taskTemplateId) {
-        return false;
+        Pageable pageable = Helper.getPageable(1);
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(taskTemplateId));
+        for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
+            this.deleteTaskInstance(taskInstanceModel.getId());
+        }
+        for (int i = 1; i < pageTaskInstance.getTotalPages(); i++) {
+            pageable = Helper.getPageable(i);
+            pageTaskInstance = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(taskTemplateId));
+            for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
+                this.deleteTaskInstance(taskInstanceModel.getId());
+            }
+        }
+        return true;
     }
 
     // TODO
     @Override
     public boolean deleteTaskInstancesByDropdownTemplateId(Long dropdownTemplateId) {
-        return false;
+        Pageable pageable = Helper.getPageable(1);
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByDropdownTemplate(pageable, new DropdownTemplateModel(dropdownTemplateId));
+        for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
+            this.deleteTaskInstance(taskInstanceModel.getId());
+        }
+        for (int i = 1; i < pageTaskInstance.getTotalPages(); i++) {
+            pageable = Helper.getPageable(i);
+            pageTaskInstance = this.taskInstanceRepository.findByDropdownTemplate(pageable, new DropdownTemplateModel(dropdownTemplateId));
+            for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
+                this.deleteTaskInstance(taskInstanceModel.getId());
+            }
+        }
+        return true;
     }
 
     private String generateTaskAbbreviation(TaskTemplateModel taskTemplateModel, TaskInstanceModel taskInstanceModel) {
@@ -400,7 +430,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         if (taskInstanceModel.getClosedByUser() != null) {
             taskInstanceDto.setClosedByUserId(taskInstanceModel.getClosedByUser().getId());
         }
-        taskInstanceDto.setFunctionInstances(this.functionInstanceServices.getFunctionInstancesByTaskInstanceId(taskInstanceDto.getId()));
+//        taskInstanceDto.setFunctionInstances(this.functionInstanceServices.getFunctionInstancesByTaskInstanceId(taskInstanceDto.getId()));
 
         return taskInstanceDto;
     }

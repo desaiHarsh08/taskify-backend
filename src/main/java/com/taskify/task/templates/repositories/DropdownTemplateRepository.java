@@ -19,7 +19,7 @@ import java.util.Optional;
 public interface DropdownTemplateRepository extends JpaRepository<DropdownTemplateModel, Long> {
 
     @Override
-    @Cacheable(value = CacheNames.DROPDOWN_TEMPLATE, key = "#id")
+    @Cacheable(value = CacheNames.DROPDOWN_TEMPLATE, key = "#id", condition = "#result != null && #result.isPresent()")
     Optional<DropdownTemplateModel> findById(Long id);
 
     List<DropdownTemplateModel> findByGroup(String group);

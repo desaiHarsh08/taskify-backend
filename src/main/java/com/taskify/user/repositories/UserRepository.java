@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
     Optional<UserModel> findByEmail(String email);
 
     @Override
-    @Cacheable(value = CacheNames.USER, key = "#id")
+    @Cacheable(value = CacheNames.USER, key = "#id", condition = "#result != null && #result.isPresent()")
     Optional<UserModel> findById(Long id);
 
     @Query("SELECT u FROM UserModel u JOIN DepartmentModel d WHERE u.id = d.id AND d.name = :departmentName")

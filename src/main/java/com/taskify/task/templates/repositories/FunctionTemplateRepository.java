@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface FunctionTemplateRepository extends JpaRepository<FunctionTemplateModel, Long> {
 
     @Override
-    @Cacheable(value = CacheNames.FUNCTION_TEMPLATE, key = "#id")
+    @Cacheable(value = CacheNames.FUNCTION_TEMPLATE, key = "#id", condition = "#result != null && #result.isPresent()")
     Optional<FunctionTemplateModel> findById(Long id);
 
     Optional<FunctionTemplateModel> findByTitle(String title);
