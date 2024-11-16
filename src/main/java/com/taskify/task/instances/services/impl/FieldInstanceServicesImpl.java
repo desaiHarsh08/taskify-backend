@@ -221,14 +221,14 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
             }
         }
         // Step 3: Delete the activity_logs
-        Pageable pageable = PageRequest.of(1, 100);
+        Pageable pageable = PageRequest.of(0, 100);
         Page<ActivityLogModel> pageActivityLog = this.activityLogRepository.findByFieldInstance(pageable, new FieldInstanceModel(id));
         for (ActivityLogModel activityLogModel: pageActivityLog.getContent()) {
             this.activityLogRepository.deleteById(activityLogModel.getId());
         }
-        for (int i = 2; i < pageActivityLog.getTotalPages(); i++) {
+        for (int i = 1; i < pageActivityLog.getTotalPages(); i++) {
             pageable = PageRequest.of(i, 100);
-            pageActivityLog = this.activityLogRepository.findByTaskInstance(pageable, new TaskInstanceModel(id));
+            pageActivityLog = this.activityLogRepository.findByFieldInstance(pageable, new FieldInstanceModel(id));
             for (ActivityLogModel activityLogModel: pageActivityLog.getContent()) {
                 this.activityLogRepository.deleteById(activityLogModel.getId());
             }

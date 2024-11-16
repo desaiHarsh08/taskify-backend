@@ -60,10 +60,6 @@ public class SecurityConfig {
             corsConfiguration.setAllowedOrigins(Arrays.asList(
                     "http://localhost:3000",
                     "http://localhost:5173",
-                    "http://localhost:4200",
-                    "https://9d4x4pt4-5173.inc1.devtunnels.ms",
-                    "https://s14jdt5l-5173.inc1.devtunnels.ms",
-                    "https://s14jdt5l-5173.inc1.devtunnels.ms",
                     "http://13.235.168.107:3006"));
             corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
             corsConfiguration.setAllowCredentials(true);

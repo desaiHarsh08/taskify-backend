@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @CacheEvict(value = {CacheNames.ALL_USERS}, allEntries = true)
+    @CacheEvict(value =     {CacheNames.ALL_USERS}, allEntries = true)
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
         if (!userDto.getId().equals(id)) {
             throw new IllegalArgumentException("Please provide the valid id!");

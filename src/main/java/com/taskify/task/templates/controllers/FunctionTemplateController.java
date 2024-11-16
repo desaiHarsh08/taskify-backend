@@ -94,14 +94,14 @@ public class FunctionTemplateController {
         return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/unlink/{id}/task-template/{taskTemplateId}")
+    @GetMapping("/unlink/task-template")
     @CacheEvict(value = {
             CacheNames.FUNCTION_TEMPLATE,
             CacheNames.TASK_TEMPLATE
     }, key = "#taskTemplateId")
     public ResponseEntity<Void> unlinkFunctionTemplateFromTaskTemplate(
-            @PathVariable Long id,
-            @PathVariable Long taskTemplateId
+            @RequestParam Long id,
+            @RequestParam Long taskTemplateId
     ) {
         boolean isUnlinked = functionTemplateServices.unlinkFunctionTemplateFromTaskTemplate(id, taskTemplateId);
         return isUnlinked ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
