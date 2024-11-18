@@ -288,7 +288,13 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
                 foundColumnInstanceModel.setNumberValue(columnInstanceDto.getNumberValue());
                 break;
         }
+        System.out.println("Saved col att.: " + foundColumnInstanceModel.getTextValue());
+        // Update the dropdown
+        if (columnInstanceDto.getDropdownTemplateId() != null) {
+            foundColumnInstanceModel.setDropdownTemplate(new DropdownTemplateModel(columnInstanceDto.getDropdownTemplateId()));
+        }
         foundColumnInstanceModel = this.columnInstanceRepository.save(foundColumnInstanceModel);
+
         for (ColumnVariantInstanceDto columnVariantInstanceDto: columnInstanceDto.getColumnVariantInstances()) {
             this.columnVariantInstanceServices.updateColumnVariantInstance(columnVariantInstanceDto);
         }
@@ -301,9 +307,8 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
             else  {
                 this.rowTableInstanceServices.updateRowTableInstance(rowTableInstanceDto.getId(), rowTableInstanceDto);
             }
-
-
         }
+
 
         return this.columnInstanceModelToDto(foundColumnInstanceModel);
     }

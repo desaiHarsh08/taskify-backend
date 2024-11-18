@@ -47,6 +47,5 @@ public class FunctionInstanceDto {
 
     private String remarks;
 
-//    private List<MultipartFile> multipartFiles = new ArrayList<>();
 
 }
