@@ -170,11 +170,16 @@ public class FunctionTemplateServicesImpl implements FunctionTemplateServices {
         if (!this.functionInstanceServices.deleteFunctionInstancesByFunctionTemplateId(id)) {
             throw new IllegalArgumentException("Unable to delete the function_instances in the process of deleting the function_template (having id: " + id + ")");
         }
-        // Step 3: Unlink the FunctionTemplate by ID
-        FunctionTemplateModel functionTemplate = new FunctionTemplateModel(id); // Creating a stub for the FunctionTemplate
+        // Step 3: Fetch the FunctionTemplate
+        FunctionTemplateModel functionTemplate = this.functionTemplateRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException(ResourceType.FUNCTION, "id", id, true)
+        );
+        // Step 4: Unlink the FunctionTemplate
+        functionTemplate.getTaskTemplates().remove(taskTemplate);
         taskTemplate.removeFunctionTemplate(functionTemplate);
-        // Step 4: Save the changes to TaskTemplate
+        // Step 5: Save the changes
         this.taskTemplateRepository.save(taskTemplate);
+        this.functionTemplateRepository.save(functionTemplate);
 
         return true; // Return true to indicate success
     }

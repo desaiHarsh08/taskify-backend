@@ -384,8 +384,8 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
 
     @Override
     public boolean uploadFiles(FunctionInstanceDto functionInstanceDto, MultipartFile[] files) {
-        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(functionInstanceDto.getId()).orElseThrow(
-                () -> new IllegalArgumentException("No task_instance exist for id: " + functionInstanceDto.getId())
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(functionInstanceDto.getTaskInstanceId()).orElseThrow(
+                () -> new IllegalArgumentException("No task_instance exist for id: " + functionInstanceDto.getTaskInstanceId())
         );
 
         LocalDateTime date = LocalDateTime.now();

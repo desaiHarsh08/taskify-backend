@@ -76,10 +76,10 @@ public class ColumnTemplateController {
         return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/unlink/{id}/field-template/{fieldTemplateId}")
+    @GetMapping("/unlink/field-template")
     public ResponseEntity<Void> unlinkColumnTemplateFromFieldTemplate(
-            @PathVariable Long id,
-            @PathVariable Long fieldTemplateId
+            @RequestParam Long id,
+            @RequestParam Long fieldTemplateId
     ) {
         boolean isUnlinked = columnTemplateServices.unlinkColumnTemplateFromFieldTemplate(id, fieldTemplateId);
         return isUnlinked ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);

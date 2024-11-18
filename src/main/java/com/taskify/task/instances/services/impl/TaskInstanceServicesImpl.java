@@ -408,9 +408,11 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
         taskAbbreviation = taskTemplateFirstCharacter + yearLastTwoDigits + month + taskCount;
 
-        // System.out.println("taskCount: " + taskCount);
+         System.out.println("taskCount: " + taskCount);
 
-        // System.out.println("taskAbbreviation: " + taskAbbreviation);
+         System.out.println("taskAbbreviation: " + taskAbbreviation);
+
+//        throw new IllegalArgumentException("Throw error!");
 
         return taskAbbreviation;
     }
