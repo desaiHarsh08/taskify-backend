@@ -385,28 +385,32 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         int yearLastTwoDigits = createdDate.getYear() % 100;
         // Get the month value (already 1-based, no need to add 1)
         String month = String.format("%02d", createdDate.getMonthValue());
-
+        // Fetch all the task created in current month
         List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findTasksByYearAndMonth(createdDate.getYear(), createdDate.getMonthValue());
 
-        String taskCount = "";
-        String taskAbbreviation = "";
-        for (TaskInstanceModel t : taskInstanceModels) {
-            if (taskInstanceModel.getId() != null && t.getId().equals(taskInstanceModel.getId())) {
-                taskCount = t.getAbbreviation().substring(5);
-                taskAbbreviation = taskTemplateFirstCharacter + t.getAbbreviation().substring(1);
-            }
-        }
-
+        int taskCount = 0;
         if (!taskInstanceModels.isEmpty()) {
-            if (taskCount.isEmpty()) { // New task
-                int count = Integer.parseInt(taskInstanceModels.get(0).getAbbreviation().substring(5));
-                taskCount = String.format("%03d", ++count);
-            }
-        } else {
-            taskCount = String.format("%03d", 1);
+            taskCount = taskInstanceModels.size();
         }
 
-        taskAbbreviation = taskTemplateFirstCharacter + yearLastTwoDigits + month + taskCount;
+        String taskAbbreviation = "";
+//        for (TaskInstanceModel t : taskInstanceModels) {
+//            if (taskInstanceModel.getId() != null && t.getId().equals(taskInstanceModel.getId())) {
+//                taskCount = t.getAbbreviation().substring(5);
+//                taskAbbreviation = taskTemplateFirstCharacter + t.getAbbreviation().substring(1);
+//            }
+//        }
+//
+//        if (!taskInstanceModels.isEmpty()) {
+//            if (taskCount.isEmpty()) { // New task
+//                int count = Integer.parseInt(taskInstanceModels.get(0).getAbbreviation().substring(5));
+//                taskCount = String.format("%03d", ++count);
+//            }
+//        } else {
+//            taskCount = String.format("%03d", 1);
+//        }
+
+        taskAbbreviation = taskTemplateFirstCharacter + yearLastTwoDigits + month + (++taskCount);
 
          System.out.println("taskCount: " + taskCount);
 
