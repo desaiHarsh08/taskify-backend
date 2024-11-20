@@ -6,5 +6,6 @@ public enum DepartmentType {
     ACCOUNTS,
     DISPATCH,
     SERVICE,
-    CUSTOMER
+    CUSTOMER,
+    WORKSHOP
 }

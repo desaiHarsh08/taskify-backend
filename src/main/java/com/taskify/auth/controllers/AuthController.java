@@ -66,6 +66,9 @@ public class AuthController {
         String refreshToken = this.refreshTokenServices.createRefreshToken(authRequest.getEmail()).getRefreshToken();
         System.out.println("refreshToken: " + refreshToken);
 
+
+        this.clearCookies(response);
+
         // Set the `email` and `refreshToken` inside the cookies
         Cookie emailCookie = new Cookie("email", authRequest.getEmail());
         emailCookie.setHttpOnly(true);
@@ -139,6 +142,20 @@ public class AuthController {
 
     }
 
+    // Helper method to clear cookies
+    private void clearCookies(HttpServletResponse response) {
+        setCookie(response, "email", null, 0);
+        setCookie(response, "refreshToken", null, 0);
+    }
+
+    // Helper method to set cookies
+    private void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        response.addCookie(cookie);
+    }
 
     @GetMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String rawPassword, Long id) {

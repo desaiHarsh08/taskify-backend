@@ -410,7 +410,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 //            taskCount = String.format("%03d", 1);
 //        }
 
-        taskAbbreviation = taskTemplateFirstCharacter + yearLastTwoDigits + month + (++taskCount);
+        taskAbbreviation = taskTemplateFirstCharacter + yearLastTwoDigits + month + String.format("%03d", ++taskCount);
 
          System.out.println("taskCount: " + taskCount);
 
