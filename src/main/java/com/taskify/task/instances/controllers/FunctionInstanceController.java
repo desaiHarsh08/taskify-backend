@@ -86,7 +86,7 @@ public class FunctionInstanceController {
 
     @GetMapping("/template/{functionTemplateId}")
     public ResponseEntity<PageResponse<FunctionInstanceDto>> getFunctionInstancesByFunctionTemplateById(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long functionTemplateId
     ) {
@@ -102,7 +102,7 @@ public class FunctionInstanceController {
 
     @GetMapping("/created-by/{createdByUserId}")
     public ResponseEntity<PageResponse<FunctionInstanceDto>> getFunctionInstancesByCreatedByUserId(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long createdByUserId
     ) {
@@ -112,7 +112,7 @@ public class FunctionInstanceController {
 
     @GetMapping("/closed-by/{closedByUserId}")
     public ResponseEntity<PageResponse<FunctionInstanceDto>> getFunctionInstancesByClosedByUserId(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long closedByUserId
     ) {
@@ -122,7 +122,7 @@ public class FunctionInstanceController {
 
     @GetMapping("/date")
     public ResponseEntity<PageResponse<FunctionInstanceDto>> getFunctionInstancesByDate(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @RequestParam LocalDateTime date,
             @RequestParam DateParamType type

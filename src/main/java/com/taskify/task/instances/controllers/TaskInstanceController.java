@@ -4,12 +4,14 @@ import com.taskify.common.constants.DateParamType;
 import com.taskify.common.constants.PriorityType;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.task.instances.dtos.TaskInstanceDto;
+import com.taskify.task.instances.dtos.TaskSummaryDto;
 import com.taskify.task.instances.services.TaskInstanceServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,16 +30,71 @@ public class TaskInstanceController {
 
     @GetMapping
     public ResponseEntity<PageResponse<TaskInstanceDto>> getAllTaskInstances(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
         PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getAllTaskInstances(pageNumber, pageSize);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
+    @GetMapping("/abbreviation-date")
+    public ResponseEntity<PageResponse<TaskInstanceDto>> getTasksByAbbreviationAndCreatedDate(
+            @RequestParam(name = "page") int pageNumber,
+            @RequestParam(required = false) Integer pageSize, // Optional parameter
+            @RequestParam(name = "abbreviation") String taskAbbreviation, @RequestParam(name = "date") LocalDate date) {
+        return new ResponseEntity<>(
+                this.taskInstanceServices.getTaskByAbbreviationAndCreatedDate(pageNumber, pageSize, taskAbbreviation, date),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/abbreviation/{abbreviation}")
+    public ResponseEntity<TaskInstanceDto> getTasksByAbbreviation(
+            @PathVariable String abbreviation) {
+        return new ResponseEntity<>(
+                this.taskInstanceServices.getTaskInstanceByAbbreviation(abbreviation),
+                HttpStatus.OK);
+    }
+
+
+    @GetMapping("/summary")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getAllTaskSummary(
+            @RequestParam(name = "page", required = false) Integer pageNumber, // Optional parameter
+            @RequestParam(required = false) Integer pageSize, // Optional parameter
+            @RequestParam(required = false) PriorityType priority, // Optional parameter
+            @RequestParam(required = false) Boolean overdueFlag, // Optional parameter
+            @RequestParam(required = false) Boolean pendingFlag // Optional parameter
+    ) {
+        // Set default values for the parameters if they are null
+        if (pageNumber == null) {
+            pageNumber = 1; // Default page number if not provided
+        }
+        if (pageSize == null) {
+            pageSize = 100; // Default page size if not provided
+        }
+
+        // Ensure overdueFlag and pendingFlag are true if provided, else false
+        if (overdueFlag == null) {
+            overdueFlag = false; // Default overdueFlag if not provided
+        } else {
+            overdueFlag = true; // Set to true if provided
+        }
+
+        if (pendingFlag == null) {
+            pendingFlag = false; // Default pendingFlag if not provided
+        } else {
+            pendingFlag = true; // Set to true if provided
+        }
+
+        // Call the service with the provided (or default) values
+        PageResponse<TaskSummaryDto> taskSummaryDtos = taskInstanceServices.getTasksSummary(pageNumber, pageSize, priority, overdueFlag, pendingFlag);
+        return new ResponseEntity<>(taskSummaryDtos, HttpStatus.OK);
+    }
+
+
+
     @GetMapping("/template/{taskTemplateId}")
     public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByTaskTemplateById(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long taskTemplateId
     ) {
@@ -60,7 +117,7 @@ public class TaskInstanceController {
 
     @GetMapping("/priority/{priorityType}")
     public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByPriorityType(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable PriorityType priorityType
     ) {
@@ -70,7 +127,7 @@ public class TaskInstanceController {
 
     @GetMapping("/created-by/{createdByUserId}")
     public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByCreatedByUserId(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long createdByUserId
     ) {
@@ -80,7 +137,7 @@ public class TaskInstanceController {
 
     @GetMapping("/closed-by/{closedByUserId}")
     public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByClosedByUserId(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long closedByUserId
     ) {
@@ -90,7 +147,7 @@ public class TaskInstanceController {
 
     @GetMapping("/overdue")
     public ResponseEntity<PageResponse<TaskInstanceDto>> getOverdueTaskInstances(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
         PageResponse<TaskInstanceDto> overdueTaskInstances = taskInstanceServices.getOverdueTaskInstances(pageNumber, pageSize);
@@ -99,7 +156,7 @@ public class TaskInstanceController {
 
     @GetMapping("/date")
     public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByDate(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @RequestParam LocalDateTime date,
             @RequestParam DateParamType type

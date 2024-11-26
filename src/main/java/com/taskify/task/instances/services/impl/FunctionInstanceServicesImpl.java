@@ -170,7 +170,7 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
 
     @Override
     public List<FunctionInstanceDto> getFunctionInstancesByTaskInstanceId(Long taskInstanceId) {
-        List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstance(new TaskInstanceModel(taskInstanceId));
+        List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(new TaskInstanceModel(taskInstanceId));
         if (functionInstanceModels.isEmpty()) {
             return new ArrayList<>();
         }
@@ -334,7 +334,7 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
 
     @Override
     public boolean deleteFunctionInstancesByTaskInstanceId(Long taskInstanceId) {
-        List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstance(new TaskInstanceModel(taskInstanceId));
+        List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(new TaskInstanceModel(taskInstanceId));
         for (FunctionInstanceModel functionInstanceModel: functionInstanceModels) {
             this.deleteFunctionInstance(functionInstanceModel.getId());
         }

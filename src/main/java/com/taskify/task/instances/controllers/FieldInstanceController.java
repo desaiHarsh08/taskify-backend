@@ -27,7 +27,7 @@ public class FieldInstanceController {
 
     @GetMapping
     public ResponseEntity<PageResponse<FieldInstanceDto>> getAllFieldInstances(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
         PageResponse<FieldInstanceDto> fieldInstances = fieldInstanceServices.getAllFieldInstances(pageNumber, pageSize);
@@ -42,7 +42,7 @@ public class FieldInstanceController {
 
     @GetMapping("/template/{fieldTemplateId}")
     public ResponseEntity<PageResponse<FieldInstanceDto>> getFieldInstancesByFieldTemplateById(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long fieldTemplateId
     ) {
@@ -58,7 +58,7 @@ public class FieldInstanceController {
 
     @GetMapping("/created-by/{createdByUserId}")
     public ResponseEntity<PageResponse<FieldInstanceDto>> getFieldInstancesByCreatedByUserId(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long createdByUserId
     ) {
@@ -68,7 +68,7 @@ public class FieldInstanceController {
 
     @GetMapping("/closed-by/{closedByUserId}")
     public ResponseEntity<PageResponse<FieldInstanceDto>> getFieldInstancesByClosedByUserId(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long closedByUserId
     ) {
@@ -78,7 +78,7 @@ public class FieldInstanceController {
 
     @GetMapping("/date")
     public ResponseEntity<PageResponse<FieldInstanceDto>> getFieldInstancesByDate(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @RequestParam LocalDateTime date,
             @RequestParam DateParamType type

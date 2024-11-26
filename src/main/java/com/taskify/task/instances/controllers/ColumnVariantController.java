@@ -23,7 +23,7 @@ public class ColumnVariantController {
 
     @GetMapping
     public ResponseEntity<PageResponse<ColumnVariantInstanceDto>> getAllColumnVariantInstances(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
         PageResponse<ColumnVariantInstanceDto> columnVariants = columnVariantInstanceServices.getAllColumnVariantInstances(pageNumber, pageSize);
@@ -32,7 +32,7 @@ public class ColumnVariantController {
 
     @GetMapping("/template/{columnVariantTemplateId}")
     public ResponseEntity<PageResponse<ColumnVariantInstanceDto>> getColumnVariantInstancesByColumnVariantTemplateById(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long columnVariantTemplateId
     ) {

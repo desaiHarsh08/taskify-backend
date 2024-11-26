@@ -79,7 +79,7 @@ public class FieldTemplateController {
         return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/unlink/{id}/function-template/{functionTemplateId}")
+    @GetMapping("/unlink/function-template")
     @CacheEvict(value = {
             CacheNames.ALL_TASK_TEMPLATES,
             CacheNames.ALL_FUNCTION_TEMPLATES,
@@ -88,8 +88,8 @@ public class FieldTemplateController {
             CacheNames.FIELD_TEMPLATE
     }, allEntries = true)
     public ResponseEntity<Void> unlinkFieldTemplateFromFunctionTemplate(
-            @PathVariable Long id,
-            @PathVariable Long functionTemplateId
+            @RequestParam Long id,
+            @RequestParam Long functionTemplateId
     ) {
         boolean isUnlinked = fieldTemplateServices.unlinkFieldTemplateFromFunctionTemplate(id, functionTemplateId);
         return isUnlinked ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);

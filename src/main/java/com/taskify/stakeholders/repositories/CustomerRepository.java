@@ -47,4 +47,8 @@ public interface CustomerRepository extends JpaRepository<CustomerModel, Long> {
             Pageable pageable);
 
 
+    @Query("SELECT c FROM CustomerModel c WHERE c.id IN :ids")
+    List<CustomerModel> findByIds(@Param("ids") List<Long> ids);
+
+
 }

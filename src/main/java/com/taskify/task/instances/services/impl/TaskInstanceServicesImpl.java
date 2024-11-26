@@ -4,25 +4,26 @@ import com.taskify.analytics.dtos.ActivityLogDto;
 import com.taskify.analytics.models.ActivityLogModel;
 import com.taskify.analytics.repositories.ActivityLogRepository;
 import com.taskify.analytics.services.ActivityLogServices;
-import com.taskify.common.constants.ActionType;
-import com.taskify.common.constants.DateParamType;
-import com.taskify.common.constants.PriorityType;
-import com.taskify.common.constants.ResourceType;
+import com.taskify.common.constants.*;
 import com.taskify.common.exceptions.ResourceNotFoundException;
 import com.taskify.common.utils.Helper;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.notifications.email.services.EmailServices;
 import com.taskify.stakeholders.models.CustomerModel;
 import com.taskify.stakeholders.repositories.CustomerRepository;
-import com.taskify.task.instances.dtos.FunctionInstanceDto;
-import com.taskify.task.instances.dtos.TaskInstanceDto;
+import com.taskify.task.instances.dtos.*;
+import com.taskify.task.instances.models.FunctionInstanceModel;
 import com.taskify.task.instances.models.TaskInstanceModel;
+import com.taskify.task.instances.repositories.FunctionInstanceRepository;
 import com.taskify.task.instances.repositories.TaskInstanceRepository;
+import com.taskify.task.instances.services.FieldInstanceServices;
 import com.taskify.task.instances.services.FunctionInstanceServices;
 import com.taskify.task.instances.services.TaskInstanceServices;
 import com.taskify.task.templates.models.DropdownTemplateModel;
+import com.taskify.task.templates.models.FunctionTemplateModel;
 import com.taskify.task.templates.models.TaskTemplateModel;
 import com.taskify.task.templates.repositories.DropdownTemplateRepository;
+import com.taskify.task.templates.repositories.FunctionTemplateRepository;
 import com.taskify.task.templates.repositories.TaskTemplateRepository;
 import com.taskify.user.models.UserModel;
 import com.taskify.user.repositories.UserRepository;
@@ -35,9 +36,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.taskify.common.utils.Helper.PAGE_SIZE;
 
 @Service
 public class TaskInstanceServicesImpl implements TaskInstanceServices {
@@ -68,6 +70,201 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FunctionInstanceRepository functionInstanceRepository;
+
+    @Autowired
+    private FunctionTemplateRepository functionTemplateRepository;
+
+    @Autowired
+    private FieldInstanceServices fieldInstanceServices;
+
+//    @Override
+//    public PageResponse<TaskSummaryDto> getTasksSummary(int pageNumber, Integer pageSize, PriorityType priorityType, Boolean overdueFlag, Boolean pendingFlag) {
+//        System.out.println("In getTaskSummary(), Page no.: " + pageNumber);
+//        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+//        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
+//
+//        List<CustomerModel> customerModels = new ArrayList<>();
+//
+//        List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
+//
+//        for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
+//            // Fetch the customer name
+//            CustomerModel customerModel = customerModels.stream().filter(c -> c.getId().equals(taskInstanceModel.getCustomer().getId())).findFirst().orElse(null);
+//            if (customerModel == null) {
+//                customerModel = this.customerRepository.findById(taskInstanceModel.getCustomer().getId()).orElse(null);
+//                if (customerModel == null) {
+//                    continue;
+//                }
+//                customerModels.add(customerModel);
+//            }
+//
+//            // Fetch the recent job_number, department and function currently the task is.
+//            String jobNumber = null;
+//            DepartmentType department = null;
+//            String functionName = null;
+//            LocalDateTime lastUpdated = null;
+//            List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
+//            if (!functionInstanceModels.isEmpty()) {
+//                FunctionTemplateModel functionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModels.get(0).getFunctionTemplate().getId()).orElse(null);
+//                if (functionTemplateModel != null) {
+//                    department = functionTemplateModel.getDepartment();
+//                    functionName = functionTemplateModel.getTitle();
+//                    FunctionInstanceModel tmpFnInst = functionInstanceModels.stream().filter(fn -> fn.getClosedAt() != null).findAny().orElse(null);
+//                    if (tmpFnInst != null) {
+//                        lastUpdated = tmpFnInst.getUpdatedAt();
+//                    }
+//
+//                }
+//                // Fetch the job_number
+//                if (taskInstanceModel.getTaskTemplate().getId().equals(2L)) {
+//                    FunctionInstanceModel functionInstanceModel = functionInstanceModels.stream().filter(fn -> fn.getFunctionTemplate().getId().equals(30L)).findFirst().orElse(null);
+//                    if (functionInstanceModel != null) {
+//                        List<FieldInstanceDto> fieldInstanceDtos = this.fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
+//                        for (FieldInstanceDto fieldInstanceDto: fieldInstanceDtos) {
+//                            if (fieldInstanceDto.getFieldTemplateId().equals(48L)) {
+//                                ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream().filter(col -> col.getColumnTemplateId().equals(134L)).findFirst().orElse(null);
+//                                if (columnInstanceDto != null) {
+//                                    jobNumber = columnInstanceDto.getTextValue();
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//
+//            // Add the task_summary
+//            taskSummaryDtos.add(new TaskSummaryDto(
+//                    taskInstanceModel.getAbbreviation(),
+//                    customerModel != null ? customerModel.getName() : null,
+//                    jobNumber,
+//                    department,
+//                    functionName,
+//                    taskInstanceModel.getPriorityType(),
+//                    lastUpdated
+//
+//            ));
+//        }
+//
+//        return new PageResponse<>(
+//                pageNumber,
+//                pageSize,
+//                pageTaskInstance.getTotalPages(),
+//                pageTaskInstance.getTotalElements(),
+//                taskSummaryDtos
+//        );
+//    }
+
+
+
+
+
+
+
+
+    @Override
+    public PageResponse<TaskSummaryDto> getTasksSummary(int pageNumber, Integer pageSize, PriorityType priorityType, Boolean overdueFlag, Boolean pendingFlag) {
+        System.out.println("In getTaskSummary(), Page no.: " + pageNumber);
+
+        // Pageable object for pagination
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+
+        // Fetch page of TaskInstances
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
+
+
+
+        // Prepare a list for TaskSummaryDtos
+        List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
+
+        // Iterate over task instances
+        for (TaskInstanceModel taskInstanceModel : pageTaskInstance.getContent()) {
+            List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
+
+           taskSummaryDtos.add(new TaskSummaryDto(
+                   taskInstanceModel.getAbbreviation(),
+                   taskInstanceModel.getCustomer().getId(),
+                   functionInstanceModels.get(0).getId(),
+                   taskInstanceModel.getPriorityType()
+
+           ));
+
+
+        }
+
+        // Return paginated response
+        return new PageResponse<>(
+                pageNumber,
+                pageSize,
+                pageTaskInstance.getTotalPages(),
+                pageTaskInstance.getTotalElements(),
+                taskSummaryDtos
+        );
+    }
+
+    // Helper method for creating TaskSummaryDto
+//    private TaskSummaryDto createTaskSummary(TaskInstanceModel taskInstanceModel, CustomerModel customerModel) {
+//        String jobNumber = null;
+//        DepartmentType department = null;
+//        String functionName = null;
+//        LocalDateTime lastUpdated = null;
+//
+//        // Get the most recent function instance
+//        List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
+//        if (!functionInstanceModels.isEmpty()) {
+//            FunctionTemplateModel functionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModels.get(0).getFunctionTemplate().getId()).orElse(null);
+//            if (functionTemplateModel != null) {
+//                department = functionTemplateModel.getDepartment();
+//                functionName = functionTemplateModel.getTitle();
+//                FunctionInstanceModel tmpFnInst = functionInstanceModels.stream().filter(fn -> fn.getClosedAt() != null).findAny().orElse(null);
+//                if (tmpFnInst != null) {
+//                    lastUpdated = tmpFnInst.getUpdatedAt();
+//                }
+//            }
+//
+//            // Fetch job_number if task template is 2
+//            if (taskInstanceModel.getTaskTemplate().getId().equals(2L)) {
+//                jobNumber = getJobNumber(functionInstanceModels);
+//            }
+//        }
+//
+//        // Return TaskSummaryDto
+//        return new TaskSummaryDto(
+//                taskInstanceModel.getAbbreviation(),
+//                customerModel != null ? customerModel.getName() : null,
+//                jobNumber,
+//                department,
+//                functionName,
+//                taskInstanceModel.getPriorityType(),
+//                lastUpdated
+//        );
+//    }
+//
+//    // Helper method for fetching job number
+//    private String getJobNumber(List<FunctionInstanceModel> functionInstanceModels) {
+//        for (FunctionInstanceModel functionInstanceModel : functionInstanceModels) {
+//            if (functionInstanceModel.getFunctionTemplate().getId().equals(30L)) {
+//                List<FieldInstanceDto> fieldInstanceDtos = this.fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
+//                for (FieldInstanceDto fieldInstanceDto : fieldInstanceDtos) {
+//                    if (fieldInstanceDto.getFieldTemplateId().equals(48L)) {
+//                        ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream()
+//                                .filter(col -> col.getColumnTemplateId().equals(134L))
+//                                .findFirst().orElse(null);
+//                        if (columnInstanceDto != null) {
+//                            return columnInstanceDto.getTextValue();
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return null; // Default null if not found
+//    }
+
+
+
 
     @Override
     public TaskInstanceDto createTaskInstance(TaskInstanceDto taskInstanceDto) {
@@ -114,6 +311,37 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         this.activityLogRepository.save(activityLogModel);
 
         return this.taskInstanceModelToDto(newTaskInstanceModel);
+    }
+
+    @Override
+    public TaskInstanceDto getTaskInstanceByAbbreviation(String abbreviation) {
+        TaskInstanceModel foundTaskInstanceModel = this.taskInstanceRepository.findByAbbreviation(abbreviation).orElseThrow(
+                () -> new ResourceNotFoundException(ResourceType.TASK, "abbreviation", abbreviation, false)
+        );
+
+        return this.taskInstanceModelToDto(foundTaskInstanceModel);
+    }
+
+    @Override
+    public PageResponse<TaskInstanceDto> getTaskByAbbreviationAndCreatedDate(int pageNumber, Integer pageSize, String taskAbbreviation,
+                                                                    LocalDate date) {
+        if (pageNumber < 0) {
+            throw new IllegalArgumentException("Page should always be greater than 0.");
+        }
+
+        Pageable pageable = Helper.getPageable(pageNumber);
+
+        Page<TaskInstanceModel> pageTask = this.taskInstanceRepository.findByAbbreviationAndCreatedDate(taskAbbreviation,
+                date.getYear(), date.getMonthValue(), date.getDayOfMonth(), pageable);
+
+        List<TaskInstanceModel> taskModels = pageTask.getContent();
+
+        return new PageResponse<>(
+                pageNumber,
+                PAGE_SIZE,
+                pageTask.getTotalPages(),
+                pageTask.getTotalElements(),
+                taskModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList()));
     }
 
     @Override

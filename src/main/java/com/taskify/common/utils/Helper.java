@@ -33,7 +33,7 @@ public class Helper {
         if (pageSize == null || pageSize < 1) {
             pageSize = PAGE_SIZE;
         }
-
+        System.out.println("in hepler's getPageable(), [pageNumber - 1] = " + (pageNumber - 1));
         return PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "id"));
     }
 

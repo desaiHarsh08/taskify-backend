@@ -2,6 +2,7 @@ package com.taskify.task.instances.repositories;
 
 import com.taskify.common.constants.PriorityType;
 import com.taskify.stakeholders.models.CustomerModel;
+import com.taskify.task.instances.dtos.TaskSummaryDto;
 import com.taskify.task.instances.models.TaskInstanceModel;
 import com.taskify.task.templates.models.DropdownTemplateModel;
 import com.taskify.task.templates.models.TaskTemplateModel;
@@ -14,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel, Long> {
 
@@ -47,5 +49,25 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
     int deleteByDropdownTemplateId(@Param("dropdownTemplateId") Long dropdownTemplateId);
 
     Page<TaskInstanceModel> findByDropdownTemplate(Pageable pageable, DropdownTemplateModel dropdownTemplate);
+
+
+    @Query("SELECT t FROM TaskInstanceModel t " +
+            "WHERE (:abbreviation IS NULL OR :abbreviation = '' OR LOWER(TRIM(t.abbreviation)) = LOWER(TRIM(:abbreviation))) "
+            +
+            "AND EXTRACT(YEAR FROM t.createdAt) = :year " +
+            "AND EXTRACT(MONTH FROM t.createdAt) = :month " +
+            "AND EXTRACT(DAY FROM t.createdAt) = :day")
+    Page<TaskInstanceModel> findByAbbreviationAndCreatedDate(
+            @Param("abbreviation") String abbreviation,
+            @Param("year") int year,
+            @Param("month") int month,
+            @Param("day") int day,
+            Pageable pageable);
+
+    Optional<TaskInstanceModel> findByAbbreviation(String abbreviation);
+
+
+
+
 
 }

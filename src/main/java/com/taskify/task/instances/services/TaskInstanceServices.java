@@ -4,11 +4,15 @@ import com.taskify.common.constants.DateParamType;
 import com.taskify.common.constants.PriorityType;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.task.instances.dtos.TaskInstanceDto;
+import com.taskify.task.instances.dtos.TaskSummaryDto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TaskInstanceServices {
+
+    PageResponse<TaskSummaryDto> getTasksSummary(int pageNumber, Integer pageSize, PriorityType priorityType, Boolean overdueFlag, Boolean pendingFlag);
 
     TaskInstanceDto createTaskInstance(TaskInstanceDto taskInstanceDto);
 
@@ -20,7 +24,12 @@ public interface TaskInstanceServices {
 
     TaskInstanceDto getTaskInstanceById(Long id);
 
+    TaskInstanceDto getTaskInstanceByAbbreviation(String abbreviation);
+
     TaskInstanceDto closeTaskInstance(Long id, Long closedByUserId);
+
+    PageResponse<TaskInstanceDto> getTaskByAbbreviationAndCreatedDate(int pageNumber, Integer pageSize, String taskAbbreviation,
+                                                                     LocalDate date);
 
     PageResponse<TaskInstanceDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType);
 

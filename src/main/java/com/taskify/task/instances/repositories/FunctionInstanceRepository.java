@@ -8,6 +8,7 @@ import com.taskify.user.models.UserModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ import java.util.List;
 @Repository
 public interface FunctionInstanceRepository extends JpaRepository<FunctionInstanceModel, Long> {
 
-    List<FunctionInstanceModel> findByTaskInstance(TaskInstanceModel taskInstance);
+    List<FunctionInstanceModel> findByTaskInstanceOrderByIdDesc(TaskInstanceModel taskInstance);
 
     Page<FunctionInstanceModel> findByFunctionTemplate(Pageable pageable, FunctionTemplateModel functionTemplate);
 
@@ -26,7 +27,11 @@ public interface FunctionInstanceRepository extends JpaRepository<FunctionInstan
 
     Page<FunctionInstanceModel> findByCreatedAt(Pageable pageable, LocalDateTime createdAt);
 
-
+    @Query("SELECT f FROM FunctionInstanceModel f " +
+            "WHERE f.taskInstance = :taskInstance " +
+            "AND f.closedAt IS NULL " +
+            "ORDER BY f.id DESC")
+    List<FunctionInstanceModel> findByTaskInstanceLatest(TaskInstanceModel taskInstance);
 
     Page<FunctionInstanceModel> findByClosedAt(Pageable pageable, LocalDateTime closedAt);
 

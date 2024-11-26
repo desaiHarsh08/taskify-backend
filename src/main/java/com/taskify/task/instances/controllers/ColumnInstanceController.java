@@ -73,7 +73,7 @@ public class ColumnInstanceController {
 
     @GetMapping
     public ResponseEntity<PageResponse<ColumnInstanceDto>> getAllColumnInstances(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
         PageResponse<ColumnInstanceDto> columnInstances = columnInstanceServices.getAllColumnInstances(pageNumber, pageSize);
@@ -88,7 +88,7 @@ public class ColumnInstanceController {
 
     @GetMapping("/template/{columnTemplateId}")
     public ResponseEntity<PageResponse<ColumnInstanceDto>> getColumnInstancesByColumnTemplateById(
-            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long columnTemplateId
     ) {
