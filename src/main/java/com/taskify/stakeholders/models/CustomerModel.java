@@ -52,6 +52,9 @@ public class CustomerModel {
     @JoinColumn(name = "parent_company_id_fk")
     private ParentCompanyModel parentCompany;
 
+
+    private String gst;
+
     public CustomerModel(Long id) {
         this.id = id;
     }

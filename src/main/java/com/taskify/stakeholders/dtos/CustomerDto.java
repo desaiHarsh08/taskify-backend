@@ -54,4 +54,6 @@ public class CustomerDto {
 
     @NotBlank(message = "Parent Company Id can't be null")
     private Long parentCompanyId;
+
+    private String gst;
 }

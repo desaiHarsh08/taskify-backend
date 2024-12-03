@@ -23,9 +23,6 @@ public class ParentCompanyModel {
     private String email;
 
     @Column(nullable = false)
-    private String address;
-
-    @Column(nullable = false)
     private String state;
 
     @Column(nullable = false)

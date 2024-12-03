@@ -28,9 +28,6 @@ public class ParentCompanyDto {
     @Email(message = "Email should be valid")
     private String email;
 
-    @NotBlank(message = "Address cannot be blank")
-    private String address;
-
     @NotBlank(message = "State cannot be blank")
     private String state;
 

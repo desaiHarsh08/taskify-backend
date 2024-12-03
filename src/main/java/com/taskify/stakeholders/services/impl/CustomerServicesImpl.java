@@ -134,6 +134,14 @@ public class CustomerServicesImpl implements CustomerServices {
         foundCustomer.setResidenceAddress(customerDto.getResidenceAddress());
         foundCustomer.setPincode(customerDto.getPincode());
         foundCustomer.setPhone(customerDto.getPhone());
+        foundCustomer.setGst(customerDto.getGst());
+        if (customerDto.getParentCompanyId() == null) {
+            foundCustomer.setParentCompany(null);
+        }
+        else {
+            foundCustomer.setParentCompany(new ParentCompanyModel(customerDto.getParentCompanyId()));
+        }
+
 
         foundCustomer = this.customerRepository.save(foundCustomer);
 

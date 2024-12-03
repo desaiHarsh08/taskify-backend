@@ -100,7 +100,6 @@ public class ParentCompanyServicesImpl implements ParentCompanyServices {
                 () -> new ResourceNotFoundException(ResourceType.PARENT_COMPANY, "id", parentCompanyDto.getId(), false)
         );
         foundParentCompanyModel.setName(parentCompanyDto.getName());
-        foundParentCompanyModel.setAddress(parentCompanyDto.getAddress());
         foundParentCompanyModel.setCity(parentCompanyDto.getCity());
         foundParentCompanyModel.setState(parentCompanyDto.getState());
         foundParentCompanyModel.setPincode(parentCompanyDto.getPincode());
