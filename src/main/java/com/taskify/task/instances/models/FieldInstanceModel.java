@@ -42,17 +42,6 @@ public class FieldInstanceModel {
 
     private LocalDateTime closedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     public FieldInstanceModel(Long id) {
         this.id = id;
     }

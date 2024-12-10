@@ -26,17 +26,6 @@ public class RowTableInstanceModel {
 
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     public RowTableInstanceModel(Long id) {
         this.id = id;
     }

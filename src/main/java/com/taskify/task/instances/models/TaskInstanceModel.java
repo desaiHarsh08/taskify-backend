@@ -72,16 +72,6 @@ public class TaskInstanceModel {
 
     private LocalDateTime closedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     public void setPriorityType(PriorityType priorityType) {
         if (!EnumSet.allOf(PriorityType.class).contains(priorityType)) {

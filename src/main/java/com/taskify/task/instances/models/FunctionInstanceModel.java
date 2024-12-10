@@ -51,17 +51,6 @@ public class FunctionInstanceModel {
 
     private LocalDateTime closedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     public FunctionInstanceModel(Long id) {
         this.id = id;
     }
