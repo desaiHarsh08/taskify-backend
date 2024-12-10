@@ -101,6 +101,8 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
         if (columnInstanceDto.getDropdownTemplateId() != null) {
             newColumnInstanceModel.setDropdownTemplate(new DropdownTemplateModel(columnInstanceDto.getDropdownTemplateId()));
         }
+        newColumnInstanceModel.setCreatedAt(LocalDateTime.now());
+        newColumnInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 3: Save the new column_instance
         newColumnInstanceModel = this.columnInstanceRepository.save(newColumnInstanceModel);
         // Step 4: Create the column_variant (only for CHECKBOX, TABLE)
@@ -269,6 +271,7 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
         ColumnMetadataTemplateModel columnMetadataTemplateModel = this.columnMetadataTemplateRepository.findById(columnTemplateModel.getColumnMetadataTemplate().getId()).orElseThrow(
                 () -> new ResourceNotFoundException(ResourceType.COLUMN_METADATA, "id", columnTemplateModel.getColumnMetadataTemplate().getId(), true)
         );
+        foundColumnInstanceModel.setUpdatedAt(LocalDateTime.now());
         switch (columnMetadataTemplateModel.getType()) {
             case TEXT:
             case LARGE_TEXT:

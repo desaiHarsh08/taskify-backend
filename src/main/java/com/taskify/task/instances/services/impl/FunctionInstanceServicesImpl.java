@@ -102,6 +102,8 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
         functionInstanceModel.setCreatedByUser(new UserModel(functionInstanceDto.getCreatedByUserId()));
         // Step 6: Set the function_template
         functionInstanceModel.setFunctionTemplate(new FunctionTemplateModel(functionInstanceDto.getFunctionTemplateId()));
+        functionInstanceModel.setCreatedAt(LocalDateTime.now());
+        functionInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 7: Save the fn
         functionInstanceModel = this.functionInstanceRepository.save(functionInstanceModel);
         // Step 8: Create the field_instances
@@ -253,6 +255,7 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
         if (functionInstanceDto.getDropdownTemplateId() != null) {
             foundFunctionInstanceModel.setDropdownTemplate(new DropdownTemplateModel(functionInstanceDto.getDropdownTemplateId()));
         }
+        foundFunctionInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 2: Save the changes
         foundFunctionInstanceModel = this.functionInstanceRepository.save(foundFunctionInstanceModel);
 
@@ -285,6 +288,8 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
         // Step 4: Close the function
         foundFunctionInstanceModel.setClosedAt(LocalDateTime.now());
         foundFunctionInstanceModel.setClosedByUser(closedByUserModel);
+        foundFunctionInstanceModel.setUpdatedAt(LocalDateTime.now());
+
         // Step 5: Save the changes
         foundFunctionInstanceModel = this.functionInstanceRepository.save(foundFunctionInstanceModel);
 

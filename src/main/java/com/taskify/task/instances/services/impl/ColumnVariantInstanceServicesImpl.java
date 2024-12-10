@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,6 +56,8 @@ public class ColumnVariantInstanceServicesImpl implements ColumnVariantInstanceS
         newColumnVariantInstanceModel.setBooleanValue(columnVariantInstanceDto.getBooleanValue());
         newColumnVariantInstanceModel.setTextValue(columnVariantInstanceDto.getTextValue());
         newColumnVariantInstanceModel.setNumberValue(columnVariantInstanceDto.getNumberValue());
+        newColumnVariantInstanceModel.setCreatedAt(LocalDateTime.now());
+        newColumnVariantInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 5: Save the new column_variant_instance
         newColumnVariantInstanceModel = this.columnVariantInstanceRepository.save(newColumnVariantInstanceModel);
 
@@ -112,6 +115,8 @@ public class ColumnVariantInstanceServicesImpl implements ColumnVariantInstanceS
         foundColumnVariantInstanceModel.setNumberValue(columnVariantInstanceDto.getNumberValue());
         foundColumnVariantInstanceModel.setTextValue(columnVariantInstanceDto.getTextValue());
         foundColumnVariantInstanceModel.setBooleanValue(columnVariantInstanceDto.getBooleanValue());
+        foundColumnVariantInstanceModel.setUpdatedAt(LocalDateTime.now());
+
         // Step 3: Save the changes
         foundColumnVariantInstanceModel = this.columnVariantInstanceRepository.save(foundColumnVariantInstanceModel);
 

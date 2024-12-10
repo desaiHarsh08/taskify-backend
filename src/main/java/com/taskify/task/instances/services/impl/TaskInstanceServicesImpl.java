@@ -296,6 +296,10 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         newTaskInstanceModel.setCreatedByUser(new UserModel(taskInstanceDto.getCreatedByUserId()));
         // Step 8: Set the assigned to user
         newTaskInstanceModel.setAssignedToUser(new UserModel(taskInstanceDto.getAssignedToUserId()));
+
+        newTaskInstanceModel.setCreatedAt(LocalDateTime.now());
+        newTaskInstanceModel.setUpdatedAt(LocalDateTime.now());
+
         // Step 9: Save the new task_instances
         newTaskInstanceModel = this.taskInstanceRepository.save(newTaskInstanceModel);
 
@@ -495,6 +499,8 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         foundTaskInstanceModel.setDropdownTemplate(new DropdownTemplateModel(taskInstanceDto.getDropdownTemplateId()));
         foundTaskInstanceModel.setAssignedToUser(new UserModel(taskInstanceDto.getAssignedToUserId()));
         foundTaskInstanceModel.setArchived(taskInstanceDto.isArchived());
+        foundTaskInstanceModel.setUpdatedAt(LocalDateTime.now());
+
         // Step 3: Save the changes
         foundTaskInstanceModel = this.taskInstanceRepository.save(foundTaskInstanceModel);
 
@@ -523,6 +529,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         // Step 3: Close the task
         foundTaskInstanceModel.setClosedAt(LocalDateTime.now());
         foundTaskInstanceModel.setClosedByUser(new UserModel(closedByUserId));
+        foundTaskInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 4: Save the changes
         foundTaskInstanceModel = this.taskInstanceRepository.save(foundTaskInstanceModel);
 

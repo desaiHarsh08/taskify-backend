@@ -11,6 +11,7 @@ import com.taskify.task.instances.services.ColTableInstanceServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,8 @@ public class ColTableInstanceServicesImpl implements ColTableInstanceServices {
     public ColTableInstanceDto createColTableInstance(ColTableInstanceDto colTableInstanceDto) {
         ColTableInstanceModel model = mapToModel(colTableInstanceDto);
         model.setRowTableInstance(new RowTableInstanceModel(colTableInstanceDto.getRowTableInstanceId()));
+        model.setCreatedAt(LocalDateTime.now());
+        model.setUpdatedAt(LocalDateTime.now());
         ColTableInstanceModel savedModel = colTableInstanceRepository.save(model);
         return mapToDto(savedModel);
     }
@@ -44,6 +47,7 @@ public class ColTableInstanceServicesImpl implements ColTableInstanceServices {
         colTableInstanceModel.setBooleanValue(colTableInstanceDto.isBooleanValue());
         colTableInstanceModel.setDateValue(colTableInstanceDto.getDateValue());
         colTableInstanceModel.setNumberValue(colTableInstanceDto.getNumberValue());
+        colTableInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Assuming ColumnVariantInstance is set similarly.
         ColTableInstanceModel updatedModel = colTableInstanceRepository.save(colTableInstanceModel);
 

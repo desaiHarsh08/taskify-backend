@@ -12,6 +12,7 @@ import com.taskify.task.instances.services.RowTableInstanceServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ public class RowTableInstanceServicesImpl implements RowTableInstanceServices {
     @Override
     public RowTableInstanceDto createRowTableInstance(RowTableInstanceDto rowTableInstanceDto) {
         RowTableInstanceModel rowTableInstanceModel = dtoToModel(rowTableInstanceDto);
+        rowTableInstanceModel.setCreatedAt(LocalDateTime.now());
+        rowTableInstanceModel.setUpdatedAt(LocalDateTime.now());
         rowTableInstanceModel = this.rowTableInstanceRepository.save(rowTableInstanceModel);
         for (ColTableInstanceDto colTableInstanceDto: rowTableInstanceDto.getColTableInstances()) {
             colTableInstanceDto.setRowTableInstanceId(rowTableInstanceModel.getId());
@@ -44,7 +47,7 @@ public class RowTableInstanceServicesImpl implements RowTableInstanceServices {
             this.createRowTableInstance(rowTableInstanceDto);
         }
         RowTableInstanceModel rowTableInstanceModel = rowTableInstanceRepository.findById(id).orElseThrow(() -> new RuntimeException("RowTableInstance not found"));
-        rowTableInstanceModel.setUpdatedAt(rowTableInstanceDto.getUpdatedAt());
+        rowTableInstanceModel.setUpdatedAt(LocalDateTime.now());
         for (ColTableInstanceDto colTableInstanceDto: rowTableInstanceDto.getColTableInstances()) {
             colTableInstanceDto.setRowTableInstanceId(id);
             this.colTableInstanceServices.updateColTableInstance(colTableInstanceDto.getId(), colTableInstanceDto);

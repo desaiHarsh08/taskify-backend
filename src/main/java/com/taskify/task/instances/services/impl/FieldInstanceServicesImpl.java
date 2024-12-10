@@ -56,6 +56,8 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
         newFieldInstanceModel.setFieldTemplate(new FieldTemplateModel(fieldInstanceDto.getFieldTemplateId()));
         newFieldInstanceModel.setCreatedByUser(new UserModel(fieldInstanceDto.getCreatedByUserId()));
         newFieldInstanceModel.setFunctionInstance(new FunctionInstanceModel(fieldInstanceDto.getFunctionInstanceId()));
+        newFieldInstanceModel.setCreatedAt(LocalDateTime.now());
+        newFieldInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 2: Save the new field_instance
         newFieldInstanceModel = this.fieldInstanceRepository.save(newFieldInstanceModel);
         // Step 3: Create the column_instance
@@ -191,6 +193,7 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
         // Step 2: Close the field_instance
         foundFieldInstanceModel.setClosedAt(LocalDateTime.now());
         foundFieldInstanceModel.setClosedByUser(new UserModel(closedByUserId));
+        foundFieldInstanceModel.setUpdatedAt(LocalDateTime.now());
         // Step 3: Save the changes
         foundFieldInstanceModel = this.fieldInstanceRepository.save(foundFieldInstanceModel);
 
