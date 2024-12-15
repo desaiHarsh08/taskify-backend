@@ -11,12 +11,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TaskSummaryDto {
 
+    private Long id;
+
+    private Long taskTemplateId;
+
     private String abbreviation;
+
+    private String jobNumber;
 
     private Long customerId;
 
     private Long functionId;
 
     private PriorityType priorityType = PriorityType.NORMAL;
+
+    private LocalDateTime closedAt;
 
 }

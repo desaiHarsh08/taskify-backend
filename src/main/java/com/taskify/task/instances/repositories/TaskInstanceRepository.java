@@ -35,6 +35,10 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
 
     Page<TaskInstanceModel> findByClosedAt(Pageable pageable, LocalDateTime closedAt);
 
+    @Query("SELECT t FROM TaskInstanceModel t WHERE (:isClosed = true AND t.closedAt IS NOT NULL) OR (:isClosed = false AND t.closedAt IS NULL)")
+    Page<TaskInstanceModel> findByIsClosed(Pageable pageable, @Param("isClosed") boolean isClosed);
+
+
     @Query("SELECT t FROM TaskInstanceModel t WHERE EXTRACT(YEAR FROM t.createdAt) = :year AND EXTRACT(MONTH FROM t.createdAt) = :month ORDER BY t.createdAt DESC")
     List<TaskInstanceModel> findTasksByYearAndMonth(@Param("year") int year, @Param("month") int month);
 

@@ -12,6 +12,8 @@ import com.taskify.notifications.email.services.EmailServices;
 import com.taskify.stakeholders.models.CustomerModel;
 import com.taskify.stakeholders.repositories.CustomerRepository;
 import com.taskify.task.instances.dtos.*;
+import com.taskify.task.instances.models.ColumnInstanceModel;
+import com.taskify.task.instances.models.FieldInstanceModel;
 import com.taskify.task.instances.models.FunctionInstanceModel;
 import com.taskify.task.instances.models.TaskInstanceModel;
 import com.taskify.task.instances.repositories.FunctionInstanceRepository;
@@ -19,12 +21,8 @@ import com.taskify.task.instances.repositories.TaskInstanceRepository;
 import com.taskify.task.instances.services.FieldInstanceServices;
 import com.taskify.task.instances.services.FunctionInstanceServices;
 import com.taskify.task.instances.services.TaskInstanceServices;
-import com.taskify.task.templates.models.DropdownTemplateModel;
-import com.taskify.task.templates.models.FunctionTemplateModel;
-import com.taskify.task.templates.models.TaskTemplateModel;
-import com.taskify.task.templates.repositories.DropdownTemplateRepository;
-import com.taskify.task.templates.repositories.FunctionTemplateRepository;
-import com.taskify.task.templates.repositories.TaskTemplateRepository;
+import com.taskify.task.templates.models.*;
+import com.taskify.task.templates.repositories.*;
 import com.taskify.user.models.UserModel;
 import com.taskify.user.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -46,6 +44,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private FieldTemplateRepository fieldTemplateRepository;
+
+    @Autowired
+    private ColumnTemplateRepository columnTemplateRepository;
 
     @Autowired
     private TaskInstanceRepository taskInstanceRepository;
@@ -165,47 +169,218 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
 
 
+
     @Override
-    public PageResponse<TaskSummaryDto> getTasksSummary(int pageNumber, Integer pageSize, PriorityType priorityType, Boolean overdueFlag, Boolean pendingFlag) {
-        System.out.println("In getTaskSummary(), Page no.: " + pageNumber);
-
-        // Pageable object for pagination
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
-
-        // Fetch page of TaskInstances
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
-
-
-
-        // Prepare a list for TaskSummaryDtos
+    public List<TaskSummaryDto> getTasksSummary(List<TaskInstanceModel> taskInstanceModels) {
         List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
 
-        // Iterate over task instances
-        for (TaskInstanceModel taskInstanceModel : pageTaskInstance.getContent()) {
-            List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
+        for (TaskInstanceModel taskInstanceModel : taskInstanceModels) {
+            // Retrieve the function instances associated with the task instance
+            List<FunctionInstanceModel> functionInstanceModels = functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
 
-           taskSummaryDtos.add(new TaskSummaryDto(
-                   taskInstanceModel.getAbbreviation(),
-                   taskInstanceModel.getCustomer().getId(),
-                   functionInstanceModels.get(0).getId(),
-                   taskInstanceModel.getPriorityType()
+            // If no function instances, add basic TaskSummaryDto and continue
+            if (functionInstanceModels.isEmpty()) {
+                taskSummaryDtos.add(createTaskSummaryDto(taskInstanceModel, null, null));
+                continue;
+            }
 
-           ));
+            // Try to find the specific FunctionInstanceModel
+            FunctionInstanceModel functionInstanceModel = functionInstanceModels.stream()
+                    .filter(fn -> fn.getFunctionTemplate().getId().equals(30L))
+                    .findFirst()
+                    .orElse(null);
 
+            // If not found, add basic TaskSummaryDto with first functionInstanceModel ID
+            if (functionInstanceModel == null) {
+                taskSummaryDtos.add(createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), null));
+                continue;
+            }
 
+            // Retrieve the associated FunctionTemplateModel
+            FunctionTemplateModel functionTemplateModel = functionTemplateRepository.findById(functionInstanceModel.getFunctionTemplate().getId()).orElse(null);
+            if (functionTemplateModel == null || !functionTemplateModel.getTitle().equals("Receipt Note")) {
+                continue;
+            }
+
+            // Process field templates
+            List<FieldTemplateModel> fieldTemplateModels = fieldTemplateRepository.findByFunctionTemplates(functionTemplateModel);
+            FieldTemplateModel fieldTemplateModel = fieldTemplateModels.stream()
+                    .filter(f -> f.getTitle().equals("Job Information"))
+                    .findFirst()
+                    .orElse(null);
+
+            if (fieldTemplateModel == null) {
+                continue;
+            }
+
+            // Process column templates
+            List<ColumnTemplateModel> columnTemplateModels = columnTemplateRepository.findByFieldTemplates(fieldTemplateModel);
+            ColumnTemplateModel columnTemplateModel = columnTemplateModels.stream()
+                    .filter(c -> c.getName().equals("Job Number"))
+                    .findFirst()
+                    .orElse(null);
+
+            if (columnTemplateModel == null) {
+                continue;
+            }
+
+            // Retrieve field instances and column instances
+            List<FieldInstanceDto> fieldInstanceDtos = fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
+            FieldInstanceDto fieldInstanceDto = fieldInstanceDtos.stream()
+                    .filter(fi -> fi.getFieldTemplateId().equals(fieldTemplateModel.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (fieldInstanceDto == null) {
+                continue;
+            }
+
+            ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream()
+                    .filter(ci -> ci.getColumnTemplateId().equals(columnTemplateModel.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (columnInstanceDto != null) {
+                taskSummaryDtos.add(createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), columnInstanceDto.getTextValue()));
+            }
         }
 
-        // Return paginated response
-        return new PageResponse<>(
-                pageNumber,
-                pageSize,
-                pageTaskInstance.getTotalPages(),
-                pageTaskInstance.getTotalElements(),
-                taskSummaryDtos
+        return taskSummaryDtos;
+    }
+
+    private TaskSummaryDto createTaskSummaryDto(TaskInstanceModel taskInstanceModel, Long functionInstanceId, String jobNumber) {
+        return new TaskSummaryDto(
+                taskInstanceModel.getId(),
+                taskInstanceModel.getTaskTemplate().getId(),
+                taskInstanceModel.getAbbreviation(),
+                jobNumber,
+                taskInstanceModel.getCustomer().getId(),
+                functionInstanceId,
+                taskInstanceModel.getPriorityType(),
+                taskInstanceModel.getClosedAt()
         );
     }
 
+
+    @Override
+    public PageResponse<TaskSummaryDto> getTaskInstancesByIsClosed(int pageNumber, Integer pageSize, boolean isClosed) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByIsClosed(pageable, isClosed);
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
+    @Override
+    public TaskSummaryDto searchTaskInstance(String searchTxt) {
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
+        System.out.println("searchTxt: " + searchTxt);
+        System.out.println("found task" + taskInstanceModel + "\n");
+        if (taskInstanceModel == null) {
+            System.out.println("in if block");
+            PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, 10);
+            for (int i = 0; i < taskSummaryDtoPageResponse.getTotalPages(); i++) {
+                System.out.println("in loop block");
+                taskSummaryDtoPageResponse = this.getAllTaskInstances(i + 1, 10);
+                Collection<TaskSummaryDto> taskSummaryDtos = taskSummaryDtoPageResponse.getContent();
+                TaskSummaryDto foundTaskSummaryDto = taskSummaryDtos.stream().filter(t -> t.getJobNumber() != null && t.getJobNumber().equalsIgnoreCase(searchTxt)).findFirst().orElse(null);
+                if (foundTaskSummaryDto != null) {
+                    System.out.println("Given search:" + searchTxt);
+                    return foundTaskSummaryDto;
+                }
+            }
+        }
+        else {
+            System.out.println("in else block");
+            List<TaskInstanceModel> taskInstanceModels = new ArrayList<TaskInstanceModel>();
+            taskInstanceModels.add(taskInstanceModel);
+            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
+
+            return taskSummaryDtos.get(0);
+        }
+
+        System.out.println("throw error");
+        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
+    }
+
+
+
+
+//    public List<TaskSummaryDto> getTasksSummary(List<TaskInstanceModel> taskInstanceModels) {
+//        // Prepare a list for TaskSummaryDtos
+//        List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
+//
+//        // Iterate over task instances
+//        for (TaskInstanceModel taskInstanceModel : taskInstanceModels) {
+//            List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
+//            if (functionInstanceModels.isEmpty()) {
+//                taskSummaryDtos.add(new TaskSummaryDto(
+//                        taskInstanceModel.getAbbreviation(),
+//                        null,
+//                        taskInstanceModel.getCustomer().getId(),
+//                        null,
+//                        taskInstanceModel.getPriorityType()
+//                ));
+//                continue;
+//            }
+//            FunctionInstanceModel functionInstanceModel = functionInstanceModels.stream().filter(fn -> fn.getFunctionTemplate().getId().equals(30L)).findFirst().orElse(null);
+//            if (functionInstanceModel == null) {
+//                taskSummaryDtos.add(new TaskSummaryDto(
+//                        taskInstanceModel.getAbbreviation(),
+//                        null,
+//                        taskInstanceModel.getCustomer().getId(),
+//                        functionInstanceModels.get(0).getId(),
+//                        taskInstanceModel.getPriorityType()
+//                ));
+//            }
+//            FunctionTemplateModel functionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModel.getFunctionTemplate().getId()).orElse(null);
+//            if (functionTemplateModel.getTitle().equals("Receipt Note")) {
+//                List<FieldTemplateModel> fieldTemplateModels = this.fieldTemplateRepository.findByFunctionTemplates(functionTemplateModel);
+//                if (fieldTemplateModels.isEmpty()) {
+//                    continue;
+//                }
+//                FieldTemplateModel fieldTemplateModel = fieldTemplateModels.stream().filter(f -> f.getTitle().equals("Job Information")).findAny().orElse(null);
+//                if (fieldTemplateModel == null) {
+//                    continue;
+//                }
+//                List<ColumnTemplateModel> columnTemplateModels = this.columnTemplateRepository.findByFieldTemplates(fieldTemplateModel);
+//                if (columnTemplateModels.isEmpty()) {
+//                    continue;
+//                }
+//                ColumnTemplateModel columnTemplateModel = columnTemplateModels.stream().filter(c -> c.getName().equals("Job Number")).findAny().orElse(null);
+//                if (columnTemplateModel == null) {
+//                    continue;
+//                }
+//                List<FieldInstanceDto> fieldInstanceDtos = this.fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
+//                FieldInstanceDto fieldInstanceDto = fieldInstanceDtos.stream().filter(fi -> fi.getFieldTemplateId().equals(fieldTemplateModel.getId())).findFirst().orElse(null);
+//                if (fieldInstanceDto == null) {
+//                    continue;
+//                }
+//                ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream().filter(ci -> ci.getColumnTemplateId().equals(columnTemplateModel.getId())).findFirst().orElse(null);
+//
+//                taskSummaryDtos.add(new TaskSummaryDto(
+//                        taskInstanceModel.getAbbreviation(),
+//                        columnInstanceDto.getTextValue(),
+//                        taskInstanceModel.getCustomer().getId(),
+//                        functionInstanceModels.get(0).getId(),
+//                        taskInstanceModel.getPriorityType()
+//                ));
+//            }
+//
+//
+//
+//        }
+//
+//        return taskSummaryDtos;
+//    }
+
     // Helper method for creating TaskSummaryDto
+
 //    private TaskSummaryDto createTaskSummary(TaskInstanceModel taskInstanceModel, CustomerModel customerModel) {
 //        String jobNumber = null;
 //        DepartmentType department = null;
@@ -327,7 +502,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getTaskByAbbreviationAndCreatedDate(int pageNumber, Integer pageSize, String taskAbbreviation,
+    public PageResponse<TaskSummaryDto> getTaskByAbbreviationAndCreatedDate(int pageNumber, Integer pageSize, String taskAbbreviation,
                                                                     LocalDate date) {
         if (pageNumber < 0) {
             throw new IllegalArgumentException("Page should always be greater than 0.");
@@ -345,11 +520,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 PAGE_SIZE,
                 pageTask.getTotalPages(),
                 pageTask.getTotalElements(),
-                taskModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList()));
+                this.getTasksSummary(pageTask.getContent())
+        );
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getAllTaskInstances(int pageNumber, Integer pageSize) {
+    public PageResponse<TaskSummaryDto> getAllTaskInstances(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -359,12 +535,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getTaskInstancesByTaskTemplateById(int pageNumber, Integer pageSize, Long taskTemplateId) {
+    public PageResponse<TaskSummaryDto> getTaskInstancesByTaskTemplateById(int pageNumber, Integer pageSize, Long taskTemplateId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(taskTemplateId));
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -374,7 +550,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 
@@ -389,7 +565,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType) {
+    public PageResponse<TaskSummaryDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByPriorityType(pageable, priorityType);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -399,12 +575,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getTaskInstancesByCreatedByUserId(int pageNumber, Integer pageSize, Long createdByUserId) {
+    public PageResponse<TaskSummaryDto> getTaskInstancesByCreatedByUserId(int pageNumber, Integer pageSize, Long createdByUserId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByCreatedByUser(pageable, new UserModel(createdByUserId));
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -414,12 +590,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getTaskInstancesByClosedByUserId(int pageNumber, Integer pageSize, Long closedByUserId) {
+    public PageResponse<TaskSummaryDto> getTaskInstancesByClosedByUserId(int pageNumber, Integer pageSize, Long closedByUserId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByClosedByUser(pageable, new UserModel(closedByUserId));
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -429,12 +605,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getOverdueTaskInstances(int pageNumber, Integer pageSize) {
+    public PageResponse<TaskSummaryDto> getOverdueTaskInstances(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findTaskInstancesByOverdue(pageable);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -445,12 +621,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 
     @Override
-    public PageResponse<TaskInstanceDto> getTaskInstancesByDate(int pageNumber, Integer pageSize, LocalDateTime date, DateParamType type) {
+    public PageResponse<TaskSummaryDto> getTaskInstancesByDate(int pageNumber, Integer pageSize, LocalDateTime date, DateParamType type) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
         Page<TaskInstanceModel> pageTaskInstance;
         if (type.equals(DateParamType.CREATED)) {
@@ -470,7 +646,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 pageSize,
                 pageTaskInstance.getTotalPages(),
                 pageTaskInstance.getTotalElements(),
-                taskInstanceModels.stream().map(this::taskInstanceModelToDto).collect(Collectors.toList())
+                this.getTasksSummary(taskInstanceModels)
         );
     }
 

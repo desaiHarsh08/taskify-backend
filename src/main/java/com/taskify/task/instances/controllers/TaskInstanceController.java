@@ -29,16 +29,26 @@ public class TaskInstanceController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getAllTaskInstances(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getAllTaskInstances(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
-        PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getAllTaskInstances(pageNumber, pageSize);
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getAllTaskInstances(pageNumber, pageSize);
+        return new ResponseEntity<>(taskInstances, HttpStatus.OK);
+    }
+
+    @GetMapping("/is-closed")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByClosed(
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize,
+            @RequestParam boolean isClosed
+    ) {
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByIsClosed(pageNumber, pageSize, isClosed);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
     @GetMapping("/abbreviation-date")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getTasksByAbbreviationAndCreatedDate(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTasksByAbbreviationAndCreatedDate(
             @RequestParam(name = "page") int pageNumber,
             @RequestParam(required = false) Integer pageSize, // Optional parameter
             @RequestParam(name = "abbreviation") String taskAbbreviation, @RequestParam(name = "date") LocalDate date) {
@@ -56,49 +66,49 @@ public class TaskInstanceController {
     }
 
 
-    @GetMapping("/summary")
-    public ResponseEntity<PageResponse<TaskSummaryDto>> getAllTaskSummary(
-            @RequestParam(name = "page", required = false) Integer pageNumber, // Optional parameter
-            @RequestParam(required = false) Integer pageSize, // Optional parameter
-            @RequestParam(required = false) PriorityType priority, // Optional parameter
-            @RequestParam(required = false) Boolean overdueFlag, // Optional parameter
-            @RequestParam(required = false) Boolean pendingFlag // Optional parameter
-    ) {
-        // Set default values for the parameters if they are null
-        if (pageNumber == null) {
-            pageNumber = 1; // Default page number if not provided
-        }
-        if (pageSize == null) {
-            pageSize = 100; // Default page size if not provided
-        }
-
-        // Ensure overdueFlag and pendingFlag are true if provided, else false
-        if (overdueFlag == null) {
-            overdueFlag = false; // Default overdueFlag if not provided
-        } else {
-            overdueFlag = true; // Set to true if provided
-        }
-
-        if (pendingFlag == null) {
-            pendingFlag = false; // Default pendingFlag if not provided
-        } else {
-            pendingFlag = true; // Set to true if provided
-        }
-
-        // Call the service with the provided (or default) values
-        PageResponse<TaskSummaryDto> taskSummaryDtos = taskInstanceServices.getTasksSummary(pageNumber, pageSize, priority, overdueFlag, pendingFlag);
-        return new ResponseEntity<>(taskSummaryDtos, HttpStatus.OK);
-    }
+//    @GetMapping("/summary")
+//    public ResponseEntity<PageResponse<TaskSummaryDto>> getAllTaskSummary(
+//            @RequestParam(name = "page", required = false) Integer pageNumber, // Optional parameter
+//            @RequestParam(required = false) Integer pageSize, // Optional parameter
+//            @RequestParam(required = false) PriorityType priority, // Optional parameter
+//            @RequestParam(required = false) Boolean overdueFlag, // Optional parameter
+//            @RequestParam(required = false) Boolean pendingFlag // Optional parameter
+//    ) {
+//        // Set default values for the parameters if they are null
+//        if (pageNumber == null) {
+//            pageNumber = 1; // Default page number if not provided
+//        }
+//        if (pageSize == null) {
+//            pageSize = 100; // Default page size if not provided
+//        }
+//
+//        // Ensure overdueFlag and pendingFlag are true if provided, else false
+//        if (overdueFlag == null) {
+//            overdueFlag = false; // Default overdueFlag if not provided
+//        } else {
+//            overdueFlag = true; // Set to true if provided
+//        }
+//
+//        if (pendingFlag == null) {
+//            pendingFlag = false; // Default pendingFlag if not provided
+//        } else {
+//            pendingFlag = true; // Set to true if provided
+//        }
+//
+//        // Call the service with the provided (or default) values
+//        PageResponse<TaskSummaryDto> taskSummaryDtos = taskInstanceServices.getTasksSummary(pageNumber, pageSize, priority, overdueFlag, pendingFlag);
+//        return new ResponseEntity<>(taskSummaryDtos, HttpStatus.OK);
+//    }
 
 
 
     @GetMapping("/template/{taskTemplateId}")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByTaskTemplateById(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByTaskTemplateById(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long taskTemplateId
     ) {
-        PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getTaskInstancesByTaskTemplateById(pageNumber, pageSize, taskTemplateId);
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByTaskTemplateById(pageNumber, pageSize, taskTemplateId);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
@@ -116,52 +126,52 @@ public class TaskInstanceController {
 
 
     @GetMapping("/priority/{priorityType}")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByPriorityType(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByPriorityType(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable PriorityType priorityType
     ) {
-        PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getTaskInstancesByPriorityType(pageNumber, pageSize, priorityType);
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByPriorityType(pageNumber, pageSize, priorityType);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
     @GetMapping("/created-by/{createdByUserId}")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByCreatedByUserId(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByCreatedByUserId(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long createdByUserId
     ) {
-        PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getTaskInstancesByCreatedByUserId(pageNumber, pageSize, createdByUserId);
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByCreatedByUserId(pageNumber, pageSize, createdByUserId);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
     @GetMapping("/closed-by/{closedByUserId}")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByClosedByUserId(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByClosedByUserId(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable Long closedByUserId
     ) {
-        PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getTaskInstancesByClosedByUserId(pageNumber, pageSize, closedByUserId);
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByClosedByUserId(pageNumber, pageSize, closedByUserId);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
     @GetMapping("/overdue")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getOverdueTaskInstances(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getOverdueTaskInstances(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize
     ) {
-        PageResponse<TaskInstanceDto> overdueTaskInstances = taskInstanceServices.getOverdueTaskInstances(pageNumber, pageSize);
+        PageResponse<TaskSummaryDto> overdueTaskInstances = taskInstanceServices.getOverdueTaskInstances(pageNumber, pageSize);
         return new ResponseEntity<>(overdueTaskInstances, HttpStatus.OK);
     }
 
     @GetMapping("/date")
-    public ResponseEntity<PageResponse<TaskInstanceDto>> getTaskInstancesByDate(
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByDate(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @RequestParam LocalDateTime date,
             @RequestParam DateParamType type
     ) {
-        PageResponse<TaskInstanceDto> taskInstances = taskInstanceServices.getTaskInstancesByDate(pageNumber, pageSize, date, type);
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByDate(pageNumber, pageSize, date, type);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
@@ -181,6 +191,14 @@ public class TaskInstanceController {
     @GetMapping("/close/{id}")
     public ResponseEntity<?> closeTaskInstance(@PathVariable Long id, @RequestParam("userId") Long closedByUserId) {
         return new ResponseEntity<>(taskInstanceServices.closeTaskInstance(id, closedByUserId), HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchTaskInstance(@RequestParam String searchTxt) {
+        return new ResponseEntity<>(
+                this.taskInstanceServices.searchTaskInstance(searchTxt),
+                HttpStatus.OK
+        );
     }
 
     @DeleteMapping("/{id}")

@@ -5,6 +5,7 @@ import com.taskify.common.constants.PriorityType;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.task.instances.dtos.TaskInstanceDto;
 import com.taskify.task.instances.dtos.TaskSummaryDto;
+import com.taskify.task.instances.models.TaskInstanceModel;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,13 +13,13 @@ import java.util.List;
 
 public interface TaskInstanceServices {
 
-    PageResponse<TaskSummaryDto> getTasksSummary(int pageNumber, Integer pageSize, PriorityType priorityType, Boolean overdueFlag, Boolean pendingFlag);
+    List<TaskSummaryDto> getTasksSummary(List<TaskInstanceModel> taskInstanceModels);
 
     TaskInstanceDto createTaskInstance(TaskInstanceDto taskInstanceDto);
 
-    PageResponse<TaskInstanceDto> getAllTaskInstances(int pageNumber, Integer pageSize);
+    PageResponse<TaskSummaryDto> getAllTaskInstances(int pageNumber, Integer pageSize);
 
-    PageResponse<TaskInstanceDto> getTaskInstancesByTaskTemplateById(int pageNumber, Integer pageSize, Long taskTemplateId);
+    PageResponse<TaskSummaryDto> getTaskInstancesByTaskTemplateById(int pageNumber, Integer pageSize, Long taskTemplateId);
 
     List<TaskInstanceDto> getTaskInstancesByCustomerId(Long customerId);
 
@@ -28,18 +29,20 @@ public interface TaskInstanceServices {
 
     TaskInstanceDto closeTaskInstance(Long id, Long closedByUserId);
 
-    PageResponse<TaskInstanceDto> getTaskByAbbreviationAndCreatedDate(int pageNumber, Integer pageSize, String taskAbbreviation,
+    PageResponse<TaskSummaryDto> getTaskByAbbreviationAndCreatedDate(int pageNumber, Integer pageSize, String taskAbbreviation,
                                                                      LocalDate date);
 
-    PageResponse<TaskInstanceDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType);
+    PageResponse<TaskSummaryDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType);
 
-    PageResponse<TaskInstanceDto> getTaskInstancesByCreatedByUserId(int pageNumber, Integer pageSize, Long createdByUserId);
+    PageResponse<TaskSummaryDto> getTaskInstancesByCreatedByUserId(int pageNumber, Integer pageSize, Long createdByUserId);
 
-    PageResponse<TaskInstanceDto> getTaskInstancesByClosedByUserId(int pageNumber, Integer pageSize, Long closedByUserId);
+    PageResponse<TaskSummaryDto> getTaskInstancesByClosedByUserId(int pageNumber, Integer pageSize, Long closedByUserId);
 
-    PageResponse<TaskInstanceDto> getOverdueTaskInstances(int pageNumber, Integer pageSize);
+    PageResponse<TaskSummaryDto> getTaskInstancesByIsClosed(int pageNumber, Integer pageSize, boolean isClosed);
 
-    PageResponse<TaskInstanceDto> getTaskInstancesByDate(int pageNumber, Integer pageSize, LocalDateTime date, DateParamType type);
+    PageResponse<TaskSummaryDto> getOverdueTaskInstances(int pageNumber, Integer pageSize);
+
+    PageResponse<TaskSummaryDto> getTaskInstancesByDate(int pageNumber, Integer pageSize, LocalDateTime date, DateParamType type);
 
     TaskInstanceDto updateTaskInstance(TaskInstanceDto taskInstanceDto, Long userId);
 
@@ -48,5 +51,7 @@ public interface TaskInstanceServices {
     boolean deleteTaskInstancesByTaskTemplateId(Long taskTemplateId);
 
     boolean deleteTaskInstancesByDropdownTemplateId(Long dropdownTemplateId);
+
+    TaskSummaryDto searchTaskInstance(String searchTxt);
     
 }
