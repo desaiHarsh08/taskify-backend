@@ -42,6 +42,8 @@ public interface TaskInstanceServices {
 
     PageResponse<TaskSummaryDto> getOverdueTaskInstances(int pageNumber, Integer pageSize);
 
+    PageResponse<TaskSummaryDto> getAssignedTaskInstances(int pageNumber, Integer pageSize, Long assignedUserId);
+
     PageResponse<TaskSummaryDto> getTaskInstancesByDate(int pageNumber, Integer pageSize, LocalDateTime date, DateParamType type);
 
     TaskInstanceDto updateTaskInstance(TaskInstanceDto taskInstanceDto, Long userId);

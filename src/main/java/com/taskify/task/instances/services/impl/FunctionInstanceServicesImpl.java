@@ -115,7 +115,12 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
         this.taskInstanceRepository.save(taskInstanceModel);
 
         // Notify the user
-        this.emailServices.sendFunctionAssignmentEmail(functionInstanceModel);
+        try {
+            this.emailServices.sendFunctionAssignmentEmail(functionInstanceModel);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
 
         // Log the activity
         ActivityLogModel activityLogModel = new ActivityLogModel();

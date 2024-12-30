@@ -25,6 +25,7 @@ import com.taskify.task.templates.models.*;
 import com.taskify.task.templates.repositories.*;
 import com.taskify.user.models.UserModel;
 import com.taskify.user.repositories.UserRepository;
+import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -275,6 +276,21 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 this.getTasksSummary(pageTaskInstanceModels.getContent())
         );
     }
+
+    @Override
+    public PageResponse<TaskSummaryDto> getAssignedTaskInstances(int pageNumber, Integer pageSize, Long assignedUserId) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByAssignedToUser(pageable, new UserModel(assignedUserId));
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
 
     @Override
     public TaskSummaryDto searchTaskInstance(String searchTxt) {

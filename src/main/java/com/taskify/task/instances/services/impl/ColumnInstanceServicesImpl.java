@@ -148,25 +148,28 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
                 throw new RuntimeException("Failed to create directory: " + directoryPath);
             }
         }
-        for (MultipartFile file : files) {
-            // Create filename
-            String fileNamePrefix = taskInstanceModel.getAbbreviation() + "_" +
-                    functionInstanceModel.getId() + "_" +
-                    columnInstanceDto.getId() + "_" +
-                    date.getYear() + "-" + date.getMonth() + 1 + "-" + date.getDayOfMonth() + "-" +
-                    (date.getHour() + 1) + "-" + (date.getMinute() + 1) + "-" + (date.getSecond() + 1);
+        if (files != null) {
 
-            // Extract the extension from the original file name
-            String originalFileName = file.getOriginalFilename();
-            String extension = originalFileName.substring(originalFileName.lastIndexOf('.'));
-            // Append the extension to the fileNamePrefix
 
-            String fileName = fileNamePrefix + extension;
+            for (MultipartFile file : files) {
+                // Create filename
+                String fileNamePrefix = taskInstanceModel.getAbbreviation() + "_" +
+                        functionInstanceModel.getId() + "_" +
+                        columnInstanceDto.getId() + "_" +
+                        date.getYear() + "-" + date.getMonth() + 1 + "-" + date.getDayOfMonth() + "-" +
+                        (date.getHour() + 1) + "-" + (date.getMinute() + 1) + "-" + (date.getSecond() + 1);
 
-            System.out.println("saving...");
-            this.saveFile(file, directoryPath, fileName);
+                // Extract the extension from the original file name
+                String originalFileName = file.getOriginalFilename();
+                String extension = originalFileName.substring(originalFileName.lastIndexOf('.'));
+                // Append the extension to the fileNamePrefix
+
+                String fileName = fileNamePrefix + extension;
+
+                System.out.println("saving...");
+                this.saveFile(file, directoryPath, fileName);
+            }
         }
-
         return true;
     }
 

@@ -37,6 +37,17 @@ public class TaskInstanceController {
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
+    @GetMapping("/by-assigned-user")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getAssignedToUserTaskInstances(
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize,
+            @RequestParam Long assignedUserId
+    ) {
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getAssignedTaskInstances(pageNumber, pageSize, assignedUserId);
+        return new ResponseEntity<>(taskInstances, HttpStatus.OK);
+    }
+
+
     @GetMapping("/is-closed")
     public ResponseEntity<PageResponse<TaskSummaryDto>> getTaskInstancesByClosed(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
