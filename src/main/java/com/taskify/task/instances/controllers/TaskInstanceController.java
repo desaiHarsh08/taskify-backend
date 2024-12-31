@@ -205,9 +205,13 @@ public class TaskInstanceController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchTaskInstance(@RequestParam String searchTxt) {
+    public ResponseEntity<?> searchTaskInstance(
+            @RequestParam String searchTxt,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize
+    ) {
         return new ResponseEntity<>(
-                this.taskInstanceServices.searchTaskInstance(searchTxt),
+                this.taskInstanceServices.searchTaskInstance(searchTxt, pageNumber, pageSize),
                 HttpStatus.OK
         );
     }

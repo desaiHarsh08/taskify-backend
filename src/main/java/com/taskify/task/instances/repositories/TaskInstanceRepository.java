@@ -37,6 +37,9 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
 
     Page<TaskInstanceModel> findByAssignedToUser(Pageable pageable, UserModel assignedToUser);
 
+    List<TaskInstanceModel> findAllByAbbreviationContainingIgnoreCase(String abbreviation);
+
+
     @Query("SELECT t FROM TaskInstanceModel t WHERE (:isClosed = true AND t.closedAt IS NOT NULL) OR (:isClosed = false AND t.closedAt IS NULL)")
     Page<TaskInstanceModel> findByIsClosed(Pageable pageable, @Param("isClosed") boolean isClosed);
 

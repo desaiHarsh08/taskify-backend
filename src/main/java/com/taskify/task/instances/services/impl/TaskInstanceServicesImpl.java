@@ -291,39 +291,152 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         );
     }
 
+//    @Override
+//    public TaskSummaryDto searchTaskInstance(String searchTxt) {
+//        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
+//        System.out.println("searchTxt: " + searchTxt);
+//        System.out.println("found task" + taskInstanceModel + "\n");
+//        if (taskInstanceModel == null) {
+//            System.out.println("in if block");
+//            PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, 10);
+//            for (int i = 0; i < taskSummaryDtoPageResponse.getTotalPages(); i++) {
+//                System.out.println("in loop block");
+//                taskSummaryDtoPageResponse = this.getAllTaskInstances(i + 1, 10);
+//                Collection<TaskSummaryDto> taskSummaryDtos = taskSummaryDtoPageResponse.getContent();
+//                TaskSummaryDto foundTaskSummaryDto = taskSummaryDtos.stream().filter(t ->
+//                        (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+//                                this.customerRepository.existsByNameContainingIgnoreCase(searchTxt) ||
+//                                t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())
+//                ).findFirst().orElse(null);
+//                if (foundTaskSummaryDto != null) {
+//                    System.out.println("Given search:" + searchTxt);
+//                    return foundTaskSummaryDto;
+//                }
+//            }
+//        }
+//        else {
+//            System.out.println("in else block");
+//            List<TaskInstanceModel> taskInstanceModels = new ArrayList<TaskInstanceModel>();
+//            taskInstanceModels.add(taskInstanceModel);
+//            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
+//
+//            return taskSummaryDtos.get(0);
+//        }
+//
+//        System.out.println("throw error");
+//        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
+//    }
+//
+
+
 
     @Override
-    public TaskSummaryDto searchTaskInstance(String searchTxt) {
-        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
+    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
         System.out.println("searchTxt: " + searchTxt);
-        System.out.println("found task" + taskInstanceModel + "\n");
-        if (taskInstanceModel == null) {
-            System.out.println("in if block");
-            PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, 10);
-            for (int i = 0; i < taskSummaryDtoPageResponse.getTotalPages(); i++) {
-                System.out.println("in loop block");
-                taskSummaryDtoPageResponse = this.getAllTaskInstances(i + 1, 10);
-                Collection<TaskSummaryDto> taskSummaryDtos = taskSummaryDtoPageResponse.getContent();
-                TaskSummaryDto foundTaskSummaryDto = taskSummaryDtos.stream().filter(t -> t.getJobNumber() != null && t.getJobNumber().equalsIgnoreCase(searchTxt)).findFirst().orElse(null);
-                if (foundTaskSummaryDto != null) {
-                    System.out.println("Given search:" + searchTxt);
-                    return foundTaskSummaryDto;
-                }
-            }
-        }
-        else {
-            System.out.println("in else block");
-            List<TaskInstanceModel> taskInstanceModels = new ArrayList<TaskInstanceModel>();
+
+        // Check if abbreviation matches
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
+        if (taskInstanceModel != null) {
+            System.out.println("Found task by abbreviation");
+
+            List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
             taskInstanceModels.add(taskInstanceModel);
+
             List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
 
-            return taskSummaryDtos.get(0);
+            return new PageResponse<>(
+                    pageNumber,
+                    pageSize,
+                    1, // Total pages, since there's only one record
+                    1, // Total records
+                    taskSummaryDtos
+            );
         }
 
-        System.out.println("throw error");
+        System.out.println("Abbreviation not found, performing fallback search");
+
+        // Paginated fallback search
+        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
+        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
+                .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+                        this.customerRepository.existsByNameContainingIgnoreCase(searchTxt) ||
+                        (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
+                .toList();
+
+        if (!filteredContent.isEmpty()) {
+            System.out.println("Filtered tasks found");
+            return new PageResponse<>(
+                    pageNumber,
+                    pageSize,
+                    taskSummaryDtoPageResponse.getTotalPages(),
+                    taskSummaryDtoPageResponse.getTotalRecords(),
+                    filteredContent
+            );
+        }
+
+        System.out.println("No match found, throwing error");
         throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
     }
+//
+//
 
+
+
+//    @Override
+//    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
+//        System.out.println("searchTxt: " + searchTxt);
+//
+//        // Initialize a collection to store all matching tasks
+//        List<TaskSummaryDto> matchedTasks = new ArrayList<>();
+//
+//        // Check for partial abbreviation match
+//        List<TaskInstanceModel> abbreviationMatches = this.taskInstanceRepository
+//                .findAllByAbbreviationContainingIgnoreCase(searchTxt);
+//        if (!abbreviationMatches.isEmpty()) {
+//            System.out.println("Found tasks by partial abbreviation match: " + abbreviationMatches);
+//            matchedTasks.addAll(this.getTasksSummary(abbreviationMatches));
+//        }
+//
+//        // Paginated fallback search for job number and customer name
+//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
+//        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
+//                .filter(task ->
+//                        (task.getJobNumber() != null && task.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+//                                this.customerRepository.existsByNameContainingIgnoreCase(searchTxt)
+//                )
+//                .toList();
+//
+//        matchedTasks.addAll(filteredContent);
+//
+//        // Remove duplicates if any
+//        List<TaskSummaryDto> distinctMatchedTasks = matchedTasks.stream()
+//                .distinct()
+//                .toList();
+//
+//        // Check if any matches were found
+//        if (!distinctMatchedTasks.isEmpty()) {
+//            System.out.println("Filtered tasks found, " + distinctMatchedTasks.size());
+//            int totalMatchedRecords = distinctMatchedTasks.size();
+//            int totalPages = (int) Math.ceil((double) totalMatchedRecords / pageSize);
+//            List<TaskSummaryDto> paginatedResults = distinctMatchedTasks.stream()
+//                    .skip((long) (pageNumber - 1) * pageSize)
+//                    .limit(pageSize)
+//                    .toList();
+//
+//            return new PageResponse<>(
+//                    pageNumber,
+//                    pageSize,
+//                    totalPages,
+//                    totalMatchedRecords,
+//                    paginatedResults
+//            );
+//        }
+//
+//        // If no matches found, throw exception
+//        System.out.println("No match found, throwing error");
+//        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
+//    }
+//
 
 
 
