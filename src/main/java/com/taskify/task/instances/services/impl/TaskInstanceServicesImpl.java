@@ -258,14 +258,15 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 taskInstanceModel.getCustomer().getId(),
                 functionInstanceId,
                 taskInstanceModel.getPriorityType(),
-                taskInstanceModel.getClosedAt()
+                taskInstanceModel.getClosedAt(),
+                taskInstanceModel.getUpdatedAt()
         );
     }
 
 
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByIsClosed(int pageNumber, Integer pageSize, boolean isClosed) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByIsClosed(pageable, isClosed);
 
         return new PageResponse<>(
@@ -279,7 +280,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getAssignedTaskInstances(int pageNumber, Integer pageSize, Long assignedUserId) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByAssignedToUser(pageable, new UserModel(assignedUserId));
 
         return new PageResponse<>(
@@ -333,6 +334,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
         System.out.println("searchTxt: " + searchTxt);
+        System.out.println("count in customers: " + this.customerRepository.countByNameContainingIgnoreCase(searchTxt));
 
         // Check if abbreviation matches
         TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
@@ -359,7 +361,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
         Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
                 .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-                        this.customerRepository.existsByNameContainingIgnoreCase(searchTxt) ||
+                        this.customerRepository.countByNameContainingIgnoreCase(searchTxt) > 0 ||
                         (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
                 .toList();
 
@@ -655,7 +657,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getAllTaskInstances(int pageNumber, Integer pageSize) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
@@ -695,7 +697,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByPriorityType(pageable, priorityType);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
@@ -710,7 +712,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByCreatedByUserId(int pageNumber, Integer pageSize, Long createdByUserId) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByCreatedByUser(pageable, new UserModel(createdByUserId));
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
@@ -725,7 +727,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByClosedByUserId(int pageNumber, Integer pageSize, Long closedByUserId) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByClosedByUser(pageable, new UserModel(closedByUserId));
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
@@ -740,7 +742,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getOverdueTaskInstances(int pageNumber, Integer pageSize) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findTaskInstancesByOverdue(pageable);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
         System.out.println(pageTaskInstance.getTotalElements());
@@ -756,7 +758,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByDate(int pageNumber, Integer pageSize, LocalDateTime date, DateParamType type) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance;
         if (type.equals(DateParamType.CREATED)) {
             pageTaskInstance = this.taskInstanceRepository.findByCreatedAt(pageable, date);

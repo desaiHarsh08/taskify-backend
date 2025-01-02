@@ -7,6 +7,7 @@ import com.taskify.common.utils.Helper;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.task.instances.dtos.ColumnInstanceDto;
 import com.taskify.task.instances.dtos.ColumnVariantInstanceDto;
+import com.taskify.task.instances.dtos.FieldInstanceDto;
 import com.taskify.task.instances.dtos.RowTableInstanceDto;
 import com.taskify.task.instances.models.*;
 import com.taskify.task.instances.repositories.ColumnInstanceRepository;
@@ -314,6 +315,20 @@ public class ColumnInstanceServicesImpl implements ColumnInstanceServices {
                 this.rowTableInstanceServices.updateRowTableInstance(rowTableInstanceDto.getId(), rowTableInstanceDto);
             }
         }
+
+        FieldInstanceModel fieldInstanceModel = this.fieldInstanceRepository.findById(foundColumnInstanceModel.getFieldInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the field")
+        );
+
+        FunctionInstanceModel foundFunctionInstanceModel = this.functionInstanceRepository.findById(fieldInstanceModel.getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the fn_instance")
+        );
+
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(foundFunctionInstanceModel.getTaskInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the task_instance")
+        );
+        taskInstanceModel.setUpdatedAt(LocalDateTime.now());
+        this.taskInstanceRepository.save(taskInstanceModel);
 
 
         return this.columnInstanceModelToDto(foundColumnInstanceModel);

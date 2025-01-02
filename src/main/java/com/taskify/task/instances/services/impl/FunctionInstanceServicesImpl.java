@@ -121,6 +121,8 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
             ex.printStackTrace();
         }
 
+        taskInstanceModel.setUpdatedAt(LocalDateTime.now());
+        this.taskInstanceRepository.save(taskInstanceModel);
 
         // Log the activity
         ActivityLogModel activityLogModel = new ActivityLogModel();
@@ -264,6 +266,12 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
         // Step 2: Save the changes
         foundFunctionInstanceModel = this.functionInstanceRepository.save(foundFunctionInstanceModel);
 
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(foundFunctionInstanceModel.getTaskInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the task_instance")
+        );
+        taskInstanceModel.setUpdatedAt(LocalDateTime.now());
+        this.taskInstanceRepository.save(taskInstanceModel);
+
         // Log the activity
         ActivityLogModel activityLogModel = new ActivityLogModel();
         activityLogModel.setResourceType(ResourceType.FUNCTION);
@@ -297,6 +305,12 @@ public class FunctionInstanceServicesImpl implements FunctionInstanceServices {
 
         // Step 5: Save the changes
         foundFunctionInstanceModel = this.functionInstanceRepository.save(foundFunctionInstanceModel);
+
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(foundFunctionInstanceModel.getTaskInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the task_instance")
+        );
+        taskInstanceModel.setUpdatedAt(LocalDateTime.now());
+        this.taskInstanceRepository.save(taskInstanceModel);
 
         // TODO:Notify the user
 

@@ -52,9 +52,12 @@ public class Helper {
 
         // Default sort order to descending if no sortingType or column is provided
         Sort sort = Sort.by(Sort.Direction.DESC, column != null && !column.isEmpty() ? column : "id");
+
         if (sortingType != null && column != null && !column.isEmpty()) {
             sort = sortingType == SortingType.ASC ? Sort.by(Sort.Direction.ASC, column) : Sort.by(Sort.Direction.DESC, column);
         }
+
+        System.out.println(sort);
 
         return PageRequest.of(pageNumber - 1, pageSize, sort);
     }

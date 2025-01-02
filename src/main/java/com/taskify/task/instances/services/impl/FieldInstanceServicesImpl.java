@@ -15,9 +15,11 @@ import com.taskify.task.instances.models.FunctionInstanceModel;
 import com.taskify.task.instances.models.TaskInstanceModel;
 import com.taskify.task.instances.repositories.FieldInstanceRepository;
 import com.taskify.task.instances.repositories.FunctionInstanceRepository;
+import com.taskify.task.instances.repositories.TaskInstanceRepository;
 import com.taskify.task.instances.services.ColumnInstanceServices;
 import com.taskify.task.instances.services.FieldInstanceServices;
 import com.taskify.task.templates.models.FieldTemplateModel;
+import com.taskify.task.templates.models.FunctionTemplateModel;
 import com.taskify.user.models.UserModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,9 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
     @Autowired
     private ActivityLogRepository activityLogRepository;
 
+    @Autowired
+    private TaskInstanceRepository taskInstanceRepository;
+
     @Override
     public FieldInstanceDto createFieldInstance(FieldInstanceDto fieldInstanceDto, Long userId) {
         // Step 1: Create the new field_instance
@@ -65,6 +70,16 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
             columnInstanceDto.setFieldInstanceId(newFieldInstanceModel.getId());
             this.columnInstanceServices.createColumnInstance(columnInstanceDto);
         }
+
+        FunctionInstanceModel foundFunctionInstanceModel = this.functionInstanceRepository.findById(fieldInstanceDto.getFunctionInstanceId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the fn_instance")
+        );
+
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(foundFunctionInstanceModel.getTaskInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the task_instance")
+        );
+        taskInstanceModel.setUpdatedAt(LocalDateTime.now());
+        this.taskInstanceRepository.save(taskInstanceModel);
 
         // Log the activity
         ActivityLogModel activityLogModel = new ActivityLogModel();
@@ -197,7 +212,16 @@ public class FieldInstanceServicesImpl implements FieldInstanceServices {
         // Step 3: Save the changes
         foundFieldInstanceModel = this.fieldInstanceRepository.save(foundFieldInstanceModel);
 
-        // TODO: Notify the closed by user
+
+        FunctionInstanceModel foundFunctionInstanceModel = this.functionInstanceRepository.findById(foundFieldInstanceModel.getFunctionInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the fn_instance")
+        );
+
+        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findById(foundFunctionInstanceModel.getTaskInstance().getId()).orElseThrow(
+                () -> new IllegalArgumentException("Unable to load the task_instance")
+        );
+        taskInstanceModel.setUpdatedAt(LocalDateTime.now());
+        this.taskInstanceRepository.save(taskInstanceModel);
 
         // Log the activity
         ActivityLogModel activityLogModel = new ActivityLogModel();
