@@ -16,6 +16,9 @@ public interface CustomerRepository extends JpaRepository<CustomerModel, Long> {
 
     Page<CustomerModel> findByEmail(Pageable pageable, String email);
 
+    @Query("SELECT c FROM CustomerModel c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<CustomerModel> findByNameContainingIgnoreCase(String name);
+
     @Query("SELECT COUNT(c) FROM CustomerModel c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     long countByNameContainingIgnoreCase(@Param("name") String name);
 

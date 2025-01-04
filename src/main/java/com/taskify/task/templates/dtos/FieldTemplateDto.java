@@ -28,6 +28,8 @@ public class FieldTemplateDto {
 
     private List<ColumnTemplateDto> columnTemplates = new ArrayList<>();
 
+    private List<ColumnSequenceDto> columnSequences = new ArrayList<>();
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();

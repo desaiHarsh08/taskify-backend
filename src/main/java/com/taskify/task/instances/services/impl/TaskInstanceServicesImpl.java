@@ -331,10 +331,62 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
 
 
+//    @Override
+//    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
+//        System.out.println("searchTxt: " + searchTxt);
+//        System.out.println("count in customers: " + this.customerRepository.countByNameContainingIgnoreCase(searchTxt));
+//
+//        // Check if abbreviation matches
+//        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
+//        if (taskInstanceModel != null) {
+//            System.out.println("Found task by abbreviation");
+//
+//            List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
+//            taskInstanceModels.add(taskInstanceModel);
+//
+//            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
+//
+//            return new PageResponse<>(
+//                    pageNumber,
+//                    pageSize,
+//                    1, // Total pages, since there's only one record
+//                    1, // Total records
+//                    taskSummaryDtos
+//            );
+//        }
+//
+//        System.out.println("Abbreviation not found, performing fallback search");
+//
+//        // Paginated fallback search
+//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
+//        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
+//                .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+//                        this.customerRepository.countByNameContainingIgnoreCase(searchTxt) > 0 ||
+//                        (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
+//                .toList();
+//
+//        if (!filteredContent.isEmpty()) {
+//            System.out.println("Filtered tasks found");
+//            return new PageResponse<>(
+//                    pageNumber,
+//                    pageSize,
+//                    taskSummaryDtoPageResponse.getTotalPages(),
+//                    taskSummaryDtoPageResponse.getTotalRecords(),
+//                    filteredContent
+//            );
+//        }
+//
+//        System.out.println("No match found, throwing error");
+//        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
+//    }
+//
+//
+
+
+
     @Override
     public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
         System.out.println("searchTxt: " + searchTxt);
-        System.out.println("count in customers: " + this.customerRepository.countByNameContainingIgnoreCase(searchTxt));
 
         // Check if abbreviation matches
         TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
@@ -357,11 +409,18 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
         System.out.println("Abbreviation not found, performing fallback search");
 
+        // Fetch matching customers
+        List<CustomerModel> matchingCustomers = this.customerRepository.findByNameContainingIgnoreCase(searchTxt);
+        System.out.println("Customers searches found: " + matchingCustomers.size());
+        List<Long> matchingCustomerIds = matchingCustomers.stream()
+                .map(CustomerModel::getId)
+                .toList();
+
         // Paginated fallback search
         PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
         Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
                 .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-                        this.customerRepository.countByNameContainingIgnoreCase(searchTxt) > 0 ||
+                        (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customerId
                         (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
                 .toList();
 
@@ -379,8 +438,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         System.out.println("No match found, throwing error");
         throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
     }
-//
-//
+
 
 
 

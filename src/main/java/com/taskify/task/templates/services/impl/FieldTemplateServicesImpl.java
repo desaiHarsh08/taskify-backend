@@ -10,6 +10,7 @@ import com.taskify.task.templates.models.FieldTemplateModel;
 import com.taskify.task.templates.models.FunctionTemplateModel;
 import com.taskify.task.templates.repositories.FieldTemplateRepository;
 import com.taskify.task.templates.repositories.FunctionTemplateRepository;
+import com.taskify.task.templates.services.ColumnSequenceServices;
 import com.taskify.task.templates.services.ColumnTemplateServices;
 import com.taskify.task.templates.services.FieldTemplateServices;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,9 @@ public class FieldTemplateServicesImpl implements FieldTemplateServices {
 
     @Autowired
     private FieldTemplateRepository fieldTemplateRepository;
+
+    @Autowired
+    private ColumnSequenceServices columnSequenceServices;
 
     @Autowired
     private FunctionTemplateRepository functionTemplateRepository;
@@ -211,6 +215,7 @@ public class FieldTemplateServicesImpl implements FieldTemplateServices {
         for (ColumnTemplateDto columnTemplateDto: fieldTemplateDto.getColumnTemplates()) {
             columnTemplateDto.setFieldTemplateId(fieldTemplateDto.getId());
         }
+        fieldTemplateDto.setColumnSequences(this.columnSequenceServices.getSequencesByFieldTemplate(fieldTemplateModel.getId()));
 
         return fieldTemplateDto;
     }
