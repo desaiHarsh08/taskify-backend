@@ -1,5 +1,6 @@
 package com.taskify.task.instances.services.impl;
 
+import com.taskify.Task;
 import com.taskify.analytics.dtos.ActivityLogDto;
 import com.taskify.analytics.models.ActivityLogModel;
 import com.taskify.analytics.repositories.ActivityLogRepository;
@@ -9,6 +10,7 @@ import com.taskify.common.exceptions.ResourceNotFoundException;
 import com.taskify.common.utils.Helper;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.notifications.email.services.EmailServices;
+import com.taskify.stakeholders.dtos.CustomerDto;
 import com.taskify.stakeholders.models.CustomerModel;
 import com.taskify.stakeholders.repositories.CustomerRepository;
 import com.taskify.task.instances.dtos.*;
@@ -382,250 +384,167 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 //
 //
 
+    public List<CustomerModel> searchCustomers(String customerName) {
 
+        List<CustomerModel> customers = customerRepository.findByNamePhonePincodePersonOfContact(
+                customerName.trim(),
+                null,
+                null,
+                null
+        );
 
-    @Override
-    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
-        System.out.println("searchTxt: " + searchTxt);
-
-        // Check if abbreviation matches
-        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
-        if (taskInstanceModel != null) {
-            System.out.println("Found task by abbreviation");
-
-            List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
-            taskInstanceModels.add(taskInstanceModel);
-
-            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
-
-            return new PageResponse<>(
-                    pageNumber,
-                    pageSize,
-                    1, // Total pages, since there's only one record
-                    1, // Total records
-                    taskSummaryDtos
-            );
-        }
-
-        System.out.println("Abbreviation not found, performing fallback search");
-
-        // Fetch matching customers
-        List<CustomerModel> matchingCustomers = this.customerRepository.findByNameContainingIgnoreCase(searchTxt);
-        System.out.println("Customers searches found: " + matchingCustomers.size());
-        List<Long> matchingCustomerIds = matchingCustomers.stream()
-                .map(CustomerModel::getId)
-                .toList();
-
-        // Paginated fallback search
-        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
-        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
-                .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-                        (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customerId
-                        (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
-                .toList();
-
-        if (!filteredContent.isEmpty()) {
-            System.out.println("Filtered tasks found");
-            return new PageResponse<>(
-                    pageNumber,
-                    pageSize,
-                    taskSummaryDtoPageResponse.getTotalPages(),
-                    taskSummaryDtoPageResponse.getTotalRecords(),
-                    filteredContent
-            );
-        }
-
-        System.out.println("No match found, throwing error");
-        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
+        return customers;
     }
-
-
 
 
 //    @Override
 //    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
 //        System.out.println("searchTxt: " + searchTxt);
 //
-//        // Initialize a collection to store all matching tasks
-//        List<TaskSummaryDto> matchedTasks = new ArrayList<>();
+//        // Search by abbreviation
+//        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
+//        if (taskInstanceModel != null) {
+//            System.out.println("Found task by abbreviation");
 //
-//        // Check for partial abbreviation match
-//        List<TaskInstanceModel> abbreviationMatches = this.taskInstanceRepository
-//                .findAllByAbbreviationContainingIgnoreCase(searchTxt);
-//        if (!abbreviationMatches.isEmpty()) {
-//            System.out.println("Found tasks by partial abbreviation match: " + abbreviationMatches);
-//            matchedTasks.addAll(this.getTasksSummary(abbreviationMatches));
-//        }
+//            List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
+//            taskInstanceModels.add(taskInstanceModel);
 //
-//        // Paginated fallback search for job number and customer name
-//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
-//        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
-//                .filter(task ->
-//                        (task.getJobNumber() != null && task.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-//                                this.customerRepository.existsByNameContainingIgnoreCase(searchTxt)
-//                )
-//                .toList();
-//
-//        matchedTasks.addAll(filteredContent);
-//
-//        // Remove duplicates if any
-//        List<TaskSummaryDto> distinctMatchedTasks = matchedTasks.stream()
-//                .distinct()
-//                .toList();
-//
-//        // Check if any matches were found
-//        if (!distinctMatchedTasks.isEmpty()) {
-//            System.out.println("Filtered tasks found, " + distinctMatchedTasks.size());
-//            int totalMatchedRecords = distinctMatchedTasks.size();
-//            int totalPages = (int) Math.ceil((double) totalMatchedRecords / pageSize);
-//            List<TaskSummaryDto> paginatedResults = distinctMatchedTasks.stream()
-//                    .skip((long) (pageNumber - 1) * pageSize)
-//                    .limit(pageSize)
-//                    .toList();
+//            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
 //
 //            return new PageResponse<>(
 //                    pageNumber,
 //                    pageSize,
-//                    totalPages,
-//                    totalMatchedRecords,
-//                    paginatedResults
+//                    1, // Total pages, since there's only one record
+//                    1, // Total records
+//                    taskSummaryDtos
 //            );
 //        }
 //
-//        // If no matches found, throw exception
+//        System.out.println("Abbreviation not found, performing fallback search");
+//
+//        // Fetch matching customers
+//        List<CustomerModel> matchingCustomers = this.searchCustomers(searchTxt);
+//        System.out.println("Customers searches found: " + matchingCustomers.size());
+//        List<Long> matchingCustomerIds = matchingCustomers.stream()
+//                .map(CustomerModel::getId)
+//                .toList();
+//
+//        System.out.println(matchingCustomers);
+//        System.out.println(matchingCustomerIds);
+//
+//        // Paginated fallback search
+//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
+//        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
+//                .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+//                        (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customerId
+//                        (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
+//                .toList();
+//
+//        if (!filteredContent.isEmpty()) {
+//            System.out.println("Filtered tasks found: -");
+//            for (TaskSummaryDto taskSummaryDto: filteredContent) {
+//                System.out.println(taskSummaryDto.getCustomerId());
+//            }
+//            return new PageResponse<>(
+//                    pageNumber,
+//                    pageSize,
+//                    taskSummaryDtoPageResponse.getTotalPages(),
+//                    taskSummaryDtoPageResponse.getTotalRecords(),
+//                    filteredContent
+//            );
+//        }
+//
 //        System.out.println("No match found, throwing error");
 //        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
 //    }
-//
 
 
 
-//    public List<TaskSummaryDto> getTasksSummary(List<TaskInstanceModel> taskInstanceModels) {
-//        // Prepare a list for TaskSummaryDtos
-//        List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
-//
-//        // Iterate over task instances
-//        for (TaskInstanceModel taskInstanceModel : taskInstanceModels) {
-//            List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
-//            if (functionInstanceModels.isEmpty()) {
-//                taskSummaryDtos.add(new TaskSummaryDto(
-//                        taskInstanceModel.getAbbreviation(),
-//                        null,
-//                        taskInstanceModel.getCustomer().getId(),
-//                        null,
-//                        taskInstanceModel.getPriorityType()
-//                ));
-//                continue;
-//            }
-//            FunctionInstanceModel functionInstanceModel = functionInstanceModels.stream().filter(fn -> fn.getFunctionTemplate().getId().equals(30L)).findFirst().orElse(null);
-//            if (functionInstanceModel == null) {
-//                taskSummaryDtos.add(new TaskSummaryDto(
-//                        taskInstanceModel.getAbbreviation(),
-//                        null,
-//                        taskInstanceModel.getCustomer().getId(),
-//                        functionInstanceModels.get(0).getId(),
-//                        taskInstanceModel.getPriorityType()
-//                ));
-//            }
-//            FunctionTemplateModel functionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModel.getFunctionTemplate().getId()).orElse(null);
-//            if (functionTemplateModel.getTitle().equals("Receipt Note")) {
-//                List<FieldTemplateModel> fieldTemplateModels = this.fieldTemplateRepository.findByFunctionTemplates(functionTemplateModel);
-//                if (fieldTemplateModels.isEmpty()) {
-//                    continue;
-//                }
-//                FieldTemplateModel fieldTemplateModel = fieldTemplateModels.stream().filter(f -> f.getTitle().equals("Job Information")).findAny().orElse(null);
-//                if (fieldTemplateModel == null) {
-//                    continue;
-//                }
-//                List<ColumnTemplateModel> columnTemplateModels = this.columnTemplateRepository.findByFieldTemplates(fieldTemplateModel);
-//                if (columnTemplateModels.isEmpty()) {
-//                    continue;
-//                }
-//                ColumnTemplateModel columnTemplateModel = columnTemplateModels.stream().filter(c -> c.getName().equals("Job Number")).findAny().orElse(null);
-//                if (columnTemplateModel == null) {
-//                    continue;
-//                }
-//                List<FieldInstanceDto> fieldInstanceDtos = this.fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
-//                FieldInstanceDto fieldInstanceDto = fieldInstanceDtos.stream().filter(fi -> fi.getFieldTemplateId().equals(fieldTemplateModel.getId())).findFirst().orElse(null);
-//                if (fieldInstanceDto == null) {
-//                    continue;
-//                }
-//                ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream().filter(ci -> ci.getColumnTemplateId().equals(columnTemplateModel.getId())).findFirst().orElse(null);
-//
-//                taskSummaryDtos.add(new TaskSummaryDto(
-//                        taskInstanceModel.getAbbreviation(),
-//                        columnInstanceDto.getTextValue(),
-//                        taskInstanceModel.getCustomer().getId(),
-//                        functionInstanceModels.get(0).getId(),
-//                        taskInstanceModel.getPriorityType()
-//                ));
-//            }
-//
-//
-//
-//        }
-//
-//        return taskSummaryDtos;
-//    }
 
-    // Helper method for creating TaskSummaryDto
 
-//    private TaskSummaryDto createTaskSummary(TaskInstanceModel taskInstanceModel, CustomerModel customerModel) {
-//        String jobNumber = null;
-//        DepartmentType department = null;
-//        String functionName = null;
-//        LocalDateTime lastUpdated = null;
-//
-//        // Get the most recent function instance
-//        List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
-//        if (!functionInstanceModels.isEmpty()) {
-//            FunctionTemplateModel functionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModels.get(0).getFunctionTemplate().getId()).orElse(null);
-//            if (functionTemplateModel != null) {
-//                department = functionTemplateModel.getDepartment();
-//                functionName = functionTemplateModel.getTitle();
-//                FunctionInstanceModel tmpFnInst = functionInstanceModels.stream().filter(fn -> fn.getClosedAt() != null).findAny().orElse(null);
-//                if (tmpFnInst != null) {
-//                    lastUpdated = tmpFnInst.getUpdatedAt();
-//                }
-//            }
-//
-//            // Fetch job_number if task template is 2
-//            if (taskInstanceModel.getTaskTemplate().getId().equals(2L)) {
-//                jobNumber = getJobNumber(functionInstanceModels);
-//            }
-//        }
-//
-//        // Return TaskSummaryDto
-//        return new TaskSummaryDto(
-//                taskInstanceModel.getAbbreviation(),
-//                customerModel != null ? customerModel.getName() : null,
-//                jobNumber,
-//                department,
-//                functionName,
-//                taskInstanceModel.getPriorityType(),
-//                lastUpdated
-//        );
-//    }
-//
-//    // Helper method for fetching job number
-//    private String getJobNumber(List<FunctionInstanceModel> functionInstanceModels) {
-//        for (FunctionInstanceModel functionInstanceModel : functionInstanceModels) {
-//            if (functionInstanceModel.getFunctionTemplate().getId().equals(30L)) {
-//                List<FieldInstanceDto> fieldInstanceDtos = this.fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
-//                for (FieldInstanceDto fieldInstanceDto : fieldInstanceDtos) {
-//                    if (fieldInstanceDto.getFieldTemplateId().equals(48L)) {
-//                        ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream()
-//                                .filter(col -> col.getColumnTemplateId().equals(134L))
-//                                .findFirst().orElse(null);
-//                        if (columnInstanceDto != null) {
-//                            return columnInstanceDto.getTextValue();
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        return null; // Default null if not found
-//    }
+    @Override
+    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
+        System.out.println("Search Text: " + searchTxt);
+
+        // Step 1: Load the matching customers by given `searchText`
+        List<CustomerModel> matchingCustomers = this.searchCustomers(searchTxt);
+
+        List<Long> matchingCustomerIds = matchingCustomers.stream()
+                .map(CustomerModel::getId)
+                .toList();
+
+        System.out.println(matchingCustomers);
+        System.out.println(matchingCustomerIds);
+
+        // Step 2: Load all the taskSummary
+        List<TaskSummaryDto> allTaskSummaryDtos = new ArrayList<>();
+        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, pageSize);
+        allTaskSummaryDtos.addAll(taskSummaryDtoPageResponse.getContent());
+        for (int i = 2; i <= taskSummaryDtoPageResponse.getTotalPages(); i++) {
+            taskSummaryDtoPageResponse = this.getAllTaskInstances(i, pageSize);
+            allTaskSummaryDtos.addAll(taskSummaryDtoPageResponse.getContent());
+        }
+
+        System.out.println("Total tasks_summary: " + allTaskSummaryDtos.size());
+
+        // Step 3: Perform the filter
+        Collection<TaskSummaryDto> filteredContent = allTaskSummaryDtos.stream()
+        .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+                (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customer id
+                (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
+        .toList();
+
+        // Convert filteredContent to a List
+        List<TaskSummaryDto> filteredList = new ArrayList<>(filteredContent);
+
+        // Calculate total records and paginate results
+        if (!filteredList.isEmpty()) {
+            int totalRecords = filteredList.size();
+            int fromIndex = Math.min((pageNumber - 1) * pageSize, totalRecords);
+            int toIndex = Math.min(fromIndex + pageSize, totalRecords);
+
+            System.out.println("Searched task found: " + filteredList.size());
+            System.out.println("pageNumber: " + pageNumber);
+            System.out.println("pageSize: " + pageSize);
+
+            System.out.println(fromIndex + ", " + toIndex + ", " + totalRecords);
+
+            // If the fromIndex is greater than or equal to the totalRecords, no results should be returned
+            if (fromIndex == toIndex) {
+                return new PageResponse<>(
+                        pageNumber,
+                        pageSize,
+                        (int) Math.ceil((double) totalRecords / pageSize),
+                        totalRecords,
+                        filteredList
+                );
+            }
+            if (fromIndex > totalRecords) {
+                System.out.println("No tasks found for the requested page.");
+            }
+
+            List<TaskSummaryDto> paginatedTasks = filteredList.subList(fromIndex, toIndex);
+            return new PageResponse<>(
+                    pageNumber,
+                    pageSize,
+                    (int) Math.ceil((double) totalRecords / pageSize),
+                    totalRecords,
+                    paginatedTasks
+            );
+        }
+
+        return new PageResponse<>(
+                pageNumber,
+                pageSize,
+                (int) 0,
+                (int) 0,
+                new ArrayList<TaskSummaryDto>()
+        );
+
+    }
+
+
+
 
 
 

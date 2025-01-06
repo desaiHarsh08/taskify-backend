@@ -54,6 +54,18 @@ public interface CustomerRepository extends JpaRepository<CustomerModel, Long> {
             Pageable pageable);
 
 
+    @Query("SELECT c FROM CustomerModel c WHERE " +
+            "(:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:phone IS NULL OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
+            "(:pincode IS NULL OR LOWER(c.pincode) LIKE LOWER(CONCAT('%', :pincode, '%'))) AND " +
+            "(:personOfContact IS NULL OR LOWER(c.personOfContact) LIKE LOWER(CONCAT('%', :personOfContact, '%')))")
+    List<CustomerModel> findByNamePhonePincodePersonOfContact(
+            @Param("name") String customerName,
+            @Param("phone") String phone,
+            @Param("pincode") String pincode,
+            @Param("personOfContact") String personOfContact);
+
+
     @Query("SELECT c FROM CustomerModel c WHERE c.id IN :ids")
     List<CustomerModel> findByIds(@Param("ids") List<Long> ids);
 

@@ -75,6 +75,8 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
 
     Optional<TaskInstanceModel> findByAbbreviation(String abbreviation);
 
+    Page<TaskInstanceModel> findByAbbreviationContainingIgnoreCase(Pageable pageable, String abbreviation);
+
 
 
 
