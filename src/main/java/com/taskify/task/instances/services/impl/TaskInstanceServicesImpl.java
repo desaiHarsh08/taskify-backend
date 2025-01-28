@@ -186,21 +186,12 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
             // Retrieve the function instances associated with the task instance
             List<FunctionInstanceModel> functionInstanceModels = functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
 
-            if (!functionInstanceModels.isEmpty()) {
-                FunctionTemplateModel tmpFunctionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModels.get(0).getFunctionTemplate().getId()).orElseThrow(
-                        () -> new IllegalArgumentException("Unable to fetch the data")
-                );
+            // If no function instances, add basic TaskSummaryDto and continue
+            if (functionInstanceModels.isEmpty()) {
 
-                // If no function instances, add basic TaskSummaryDto and continue
-                if (functionInstanceModels.isEmpty()) {
-
-                    TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, null, null);
-                    if (taskSummaryDto != null) {
-                        taskSummaryDtos.add(taskSummaryDto);
-                    }
-
-                    continue;
-                }
+                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, null, null);
+                taskSummaryDtos.add(taskSummaryDto);
+                continue;
             }
 
 
@@ -213,9 +204,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
             // If not found, add basic TaskSummaryDto with first functionInstanceModel ID
             if (functionInstanceModel == null) {
                 TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), null);
-                if (taskSummaryDto != null) {
-                    taskSummaryDtos.add(taskSummaryDto);
-                }
+                taskSummaryDtos.add(taskSummaryDto);
                 continue;
             }
 
