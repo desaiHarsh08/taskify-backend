@@ -5,9 +5,15 @@ import com.taskify.common.constants.ResourceType;
 import com.taskify.common.exceptions.ResourceNotFoundException;
 import com.taskify.common.utils.PageResponse;
 import com.taskify.user.dtos.DepartmentDto;
+import com.taskify.user.dtos.PermissionDto;
 import com.taskify.user.dtos.UserDto;
+import com.taskify.user.dtos.ViewTaskDto;
+import com.taskify.user.models.PermissionModel;
 import com.taskify.user.models.UserModel;
+import com.taskify.user.models.ViewTaskModel;
+import com.taskify.user.repositories.PermissionRepository;
 import com.taskify.user.repositories.UserRepository;
+import com.taskify.user.repositories.ViewTaskRepository;
 import com.taskify.user.services.DepartmentServices;
 import com.taskify.user.services.UserServices;
 import org.modelmapper.ModelMapper;
@@ -37,6 +43,12 @@ public class UserServicesImpl implements UserServices {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    private ViewTaskRepository viewTaskRepository;
+
+    @Autowired
+    private PermissionRepository permissionRepository;
+
     @Override
     public UserDto createUser(UserDto userDto) {
         UserModel userModel = this.modelMapper.map(userDto, UserModel.class);
@@ -50,6 +62,19 @@ public class UserServicesImpl implements UserServices {
         for (DepartmentDto departmentDto: userDto.getDepartments()) {
             departmentDto.setUserId(userModel.getId());
             this.departmentServices.createDepartment(departmentDto);
+        }
+
+        for (ViewTaskDto viewTaskDto: userDto.getViewTasks()) {
+            ViewTaskModel viewTaskModel = new ViewTaskModel();
+            viewTaskModel.setTaskType(viewTaskDto.getTaskType());
+            viewTaskModel.setUser(userModel);
+            viewTaskModel = this.viewTaskRepository.save(viewTaskModel);
+            for (PermissionDto permissionDto: viewTaskDto.getPermissions()) {
+                PermissionModel permissionModel = new PermissionModel();
+                permissionModel.setType(permissionDto.getType());
+                permissionModel.setViewTask(viewTaskModel);
+                this.permissionRepository.save(permissionModel);
+            }
         }
 
         return this.userModelToDto(userModel);
@@ -145,6 +170,28 @@ public class UserServicesImpl implements UserServices {
         }
         UserDto userDto = this.modelMapper.map(userModel, UserDto.class);
         userDto.setDepartments(this.departmentServices.getDepartmentsByUserId(userModel.getId()));
+
+        List<ViewTaskModel> viewTaskModels =this.viewTaskRepository.findByUser(userModel);
+        if (!viewTaskModels.isEmpty()) {
+            List<ViewTaskDto> viewTaskDtos = new ArrayList<>();
+            for (ViewTaskModel viewTaskModel: viewTaskModels) {
+                ViewTaskDto viewTaskDto = new ViewTaskDto();
+                viewTaskDto.setTaskType(viewTaskModel.getTaskType());
+                viewTaskDto.setUserId(viewTaskModel.getUser().getId());
+                List<PermissionModel> permissionModels = this.permissionRepository.findByViewTask(viewTaskModel);
+                if (!permissionModels.isEmpty()) {
+                    for (PermissionModel permissionModel: permissionModels) {
+                        PermissionDto permissionDto = new PermissionDto();
+                        permissionDto.setType(permissionModel.getType());
+                        permissionDto.setViewTaskId(viewTaskModel.getId());
+                        viewTaskDto.getPermissions().add(permissionDto);
+                    }
+                }
+                viewTaskDtos.add(viewTaskDto);
+            }
+            userDto.setViewTasks(viewTaskDtos);
+        }
+
 
         return userDto;
     }

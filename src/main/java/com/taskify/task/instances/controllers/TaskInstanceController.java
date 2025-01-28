@@ -62,6 +62,7 @@ public class TaskInstanceController {
     public ResponseEntity<PageResponse<TaskSummaryDto>> getTasksByAbbreviationAndCreatedDate(
             @RequestParam(name = "page") int pageNumber,
             @RequestParam(required = false) Integer pageSize, // Optional parameter
+
             @RequestParam(name = "abbreviation") String taskAbbreviation, @RequestParam(name = "date") LocalDate date) {
         return new ResponseEntity<>(
                 this.taskInstanceServices.getTaskByAbbreviationAndCreatedDate(pageNumber, pageSize, taskAbbreviation, date),
@@ -141,6 +142,7 @@ public class TaskInstanceController {
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "100") Integer pageSize,
             @PathVariable PriorityType priorityType
+
     ) {
         PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getTaskInstancesByPriorityType(pageNumber, pageSize, priorityType);
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);

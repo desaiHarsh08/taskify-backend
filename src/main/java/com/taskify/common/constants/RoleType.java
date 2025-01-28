@@ -8,5 +8,6 @@ public enum RoleType {
     ACCOUNTS,
     DISPATCH,
     TECHNICIAN,
-    SURVEYOR
+    SURVEYOR,
+    MEMBER
 }

@@ -26,7 +26,9 @@ import com.taskify.task.instances.services.TaskInstanceServices;
 import com.taskify.task.templates.models.*;
 import com.taskify.task.templates.repositories.*;
 import com.taskify.user.models.UserModel;
+import com.taskify.user.models.ViewTaskModel;
 import com.taskify.user.repositories.UserRepository;
+import com.taskify.user.repositories.ViewTaskRepository;
 import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,9 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Autowired
     private ColumnTemplateRepository columnTemplateRepository;
+
+    @Autowired
+    private ViewTaskRepository viewTaskRepository;
 
     @Autowired
     private TaskInstanceRepository taskInstanceRepository;
@@ -181,11 +186,23 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
             // Retrieve the function instances associated with the task instance
             List<FunctionInstanceModel> functionInstanceModels = functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
 
-            // If no function instances, add basic TaskSummaryDto and continue
-            if (functionInstanceModels.isEmpty()) {
-                taskSummaryDtos.add(createTaskSummaryDto(taskInstanceModel, null, null));
-                continue;
+            if (!functionInstanceModels.isEmpty()) {
+                FunctionTemplateModel tmpFunctionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModels.get(0).getFunctionTemplate().getId()).orElseThrow(
+                        () -> new IllegalArgumentException("Unable to fetch the data")
+                );
+
+                // If no function instances, add basic TaskSummaryDto and continue
+                if (functionInstanceModels.isEmpty()) {
+
+                    TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, null, null);
+                    if (taskSummaryDto != null) {
+                        taskSummaryDtos.add(taskSummaryDto);
+                    }
+
+                    continue;
+                }
             }
+
 
             // Try to find the specific FunctionInstanceModel
             FunctionInstanceModel functionInstanceModel = functionInstanceModels.stream()
@@ -195,7 +212,10 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
             // If not found, add basic TaskSummaryDto with first functionInstanceModel ID
             if (functionInstanceModel == null) {
-                taskSummaryDtos.add(createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), null));
+                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), null);
+                if (taskSummaryDto != null) {
+                    taskSummaryDtos.add(taskSummaryDto);
+                }
                 continue;
             }
 
@@ -244,7 +264,10 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                     .orElse(null);
 
             if (columnInstanceDto != null) {
-                taskSummaryDtos.add(createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), columnInstanceDto.getTextValue()));
+                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), columnInstanceDto.getTextValue());
+                if (taskSummaryDto != null) {
+                    taskSummaryDtos.add(taskSummaryDto);
+                }
             }
         }
 

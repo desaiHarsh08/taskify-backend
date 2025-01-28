@@ -48,6 +48,8 @@ public class UserDto {
 
     private boolean isAdmin;
 
+    private List<ViewTaskDto> viewTasks = new ArrayList<>();
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();
