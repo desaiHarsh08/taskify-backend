@@ -293,6 +293,63 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     }
 
     @Override
+    public PageResponse<TaskSummaryDto> getDismantleDueTask(int pageNumber, Integer pageSize) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionConditions(pageable);
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
+    @Override
+    public PageResponse<TaskSummaryDto> getEstimateDueTask(int pageNumber, Integer pageSize) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionConditions(pageable);
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
+    @Override
+    public PageResponse<TaskSummaryDto> getPendingApprovalTask(int pageNumber, Integer pageSize) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionTemplate50(pageable);
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
+    @Override
+    public PageResponse<TaskSummaryDto> getApprovalStatusTask(int pageNumber, Integer pageSize, boolean status) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionFieldColumnConditions(pageable, status);
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
+
+    @Override
     public PageResponse<TaskSummaryDto> getAssignedTaskInstances(int pageNumber, Integer pageSize, Long assignedUserId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByAssignedToUser(pageable, new UserModel(assignedUserId));

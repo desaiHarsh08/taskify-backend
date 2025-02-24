@@ -37,6 +37,43 @@ public class TaskInstanceController {
         return new ResponseEntity<>(taskInstances, HttpStatus.OK);
     }
 
+    @GetMapping("/dismantle-due")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getDismantleTasksDue(
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize
+    ) {
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getDismantleDueTask(pageNumber, pageSize);
+        return new ResponseEntity<>(taskInstances, HttpStatus.OK);
+    }
+
+    @GetMapping("/estimate-due")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getEstimateTasksDue(
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize
+    ) {
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getEstimateDueTask(pageNumber, pageSize);
+        return new ResponseEntity<>(taskInstances, HttpStatus.OK);
+    }
+
+    @GetMapping("/pending-approval")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getPendingApprovalTasks(
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize
+    ) {
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getPendingApprovalTask(pageNumber, pageSize);
+        return new ResponseEntity<>(taskInstances, HttpStatus.OK);
+    }
+
+    @GetMapping("/approval-status")
+    public ResponseEntity<PageResponse<TaskSummaryDto>> getPendingApprovalTasks(
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize,
+            @RequestParam(defaultValue = "false") boolean status
+    ) {
+        PageResponse<TaskSummaryDto> taskInstances = taskInstanceServices.getApprovalStatusTask(pageNumber, pageSize, status);
+        return new ResponseEntity<>(taskInstances, HttpStatus.OK);
+    }
+
     @GetMapping("/by-assigned-user")
     public ResponseEntity<PageResponse<TaskSummaryDto>> getAssignedToUserTaskInstances(
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,

@@ -78,7 +78,139 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
     Page<TaskInstanceModel> findByAbbreviationContainingIgnoreCase(Pageable pageable, String abbreviation);
 
 
+//    @Query("""
+//    SELECT t FROM TaskInstanceModel t
+//    WHERE EXISTS (
+//        SELECT 1 FROM FunctionInstanceModel f
+//        WHERE f.taskInstance = t
+//        AND f.functionTemplateId = 30
+//        AND f.createdAt = (SELECT MAX(f2.createdAt) FROM FunctionInstanceModel f2 WHERE f2.taskInstance = t)
+//    )
+//    OR EXISTS (
+//        SELECT 1 FROM FunctionInstanceModel f
+//        WHERE f.taskInstance = t
+//        AND f.functionTemplateId IN (37, 38)
+//        AND f.closedAt IS NULL
+//    )
+//""")
+//    Page<TaskInstanceModel> findTaskInstancesByFunctionConditions(Pageable pageable); // Dismantle Due
+//
+//    @Query("""
+//    SELECT t FROM TaskInstanceModel t
+//    WHERE EXISTS (
+//        SELECT 1 FROM FunctionInstanceModel f
+//        WHERE f.taskInstance = t
+//        AND f.createdAt = (SELECT MAX(f2.createdAt) FROM FunctionInstanceModel f2 WHERE f2.taskInstance = t)
+//        AND (
+//            (f.functionTemplateId = 49 AND f.closedAt IS NULL)
+//            OR f.functionTemplateId = 38
+//        )
+//    )
+//""")
+//    Page<TaskInstanceModel> findTaskInstancesByLastFunctionConditions(Pageable pageable); // Estimate Due
+//
+//
+//    @Query("""
+//    SELECT t FROM TaskInstanceModel t
+//    WHERE EXISTS (
+//        SELECT 1 FROM FunctionInstanceModel f
+//        WHERE f.taskInstance = t
+//        AND f.createdAt = (SELECT MAX(f2.createdAt) FROM FunctionInstanceModel f2 WHERE f2.taskInstance = t)
+//        AND f.functionTemplateId = 50
+//    )
+//""")
+//    Page<TaskInstanceModel> findTaskInstancesByLastFunctionTemplate50(Pageable pageable); // Pending Approval
+//
+//
+//    @Query("""
+//    SELECT t FROM TaskInstanceModel t
+//    WHERE EXISTS (
+//        SELECT 1 FROM FunctionInstanceModel f
+//        WHERE f.taskInstance = t
+//        AND f.functionTemplateId = 32
+//        AND EXISTS (
+//            SELECT 1 FROM FieldInstanceModel fi
+//            WHERE fi.functionInstance = f
+//            AND fi.fieldTemplateId = 53
+//            AND EXISTS (
+//                SELECT 1 FROM ColumnInstanceModel ci
+//                WHERE ci.fieldInstance = fi
+//                AND ci.columnTemplateId = 18
+//                AND ci.booleanValue = :status
+//            )
+//        )
+//    )
+//""")
+//    Page<TaskInstanceModel> findTaskInstancesByFunctionFieldColumnConditions(Pageable pageable, @Param("status") boolean status);
 
 
 
+
+    @Query("""
+        SELECT t FROM TaskInstanceModel t
+        WHERE EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f
+            WHERE f.taskInstance = t
+            AND f.functionTemplate.id = 32
+            AND EXISTS (
+                SELECT 1 FROM FieldInstanceModel fi
+                WHERE fi.functionInstance = f
+                AND fi.fieldTemplate.id = 53
+                AND EXISTS (
+                    SELECT 1 FROM ColumnInstanceModel ci
+                    WHERE ci.fieldInstance = fi
+                    AND ci.columnTemplate.id = 18
+                    AND ci.booleanValue = :status
+                )
+            )
+        )
+    """)
+    Page<TaskInstanceModel> findTaskInstancesByFunctionFieldColumnConditions(Pageable pageable, @Param("status") boolean status);
+
+    @Query("""
+        SELECT t FROM TaskInstanceModel t
+        WHERE EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f
+            WHERE f.taskInstance = t
+            AND f.functionTemplate.id = 30
+            AND f.createdAt = (SELECT MAX(f2.createdAt) FROM FunctionInstanceModel f2 WHERE f2.taskInstance = t)
+        )
+        OR EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f
+            WHERE f.taskInstance = t
+            AND f.functionTemplate.id IN (37, 38)
+            AND f.closedAt IS NULL
+        )
+    """)
+    Page<TaskInstanceModel> findTaskInstancesByFunctionConditions(Pageable pageable); // Dismantle Due
+
+    @Query("""
+        SELECT t FROM TaskInstanceModel t
+        WHERE EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f
+            WHERE f.taskInstance = t
+            AND f.createdAt = (SELECT MAX(f2.createdAt) FROM FunctionInstanceModel f2 WHERE f2.taskInstance = t)
+            AND (
+                (f.functionTemplate.id = 49 AND f.closedAt IS NULL)
+                OR f.functionTemplate.id = 38
+            )
+        )
+    """)
+    Page<TaskInstanceModel> findTaskInstancesByLastFunctionConditions(Pageable pageable); // Estimate Due
+
+    @Query("""
+        SELECT t FROM TaskInstanceModel t
+        WHERE EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f
+            WHERE f.taskInstance = t
+            AND f.createdAt = (SELECT MAX(f2.createdAt) FROM FunctionInstanceModel f2 WHERE f2.taskInstance = t)
+            AND f.functionTemplate.id = 50
+        )
+    """)
+    Page<TaskInstanceModel> findTaskInstancesByLastFunctionTemplate50(Pageable pageable); // Pending Approval
 }
+
+
+
+
+

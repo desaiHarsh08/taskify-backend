@@ -55,5 +55,15 @@ public interface TaskInstanceServices {
     boolean deleteTaskInstancesByDropdownTemplateId(Long dropdownTemplateId);
 
 //    TaskSummaryDto searchTaskInstance(String searchTxt);
-PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize);
+    PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize);
+
+    PageResponse<TaskSummaryDto> getDismantleDueTask(int pageNumber, Integer pageSize);
+
+    PageResponse<TaskSummaryDto> getEstimateDueTask(int pageNumber, Integer pageSize);
+
+    PageResponse<TaskSummaryDto> getPendingApprovalTask(int pageNumber, Integer pageSize);
+
+    PageResponse<TaskSummaryDto> getApprovalStatusTask(int pageNumber, Integer pageSize, boolean status);
+
+
 }
