@@ -72,7 +72,6 @@ public class TaskInstanceModel {
 
     private LocalDateTime closedAt;
 
-
     public void setPriorityType(PriorityType priorityType) {
         if (!EnumSet.allOf(PriorityType.class).contains(priorityType)) {
             throw new IllegalArgumentException("Invalid priority for task...!");

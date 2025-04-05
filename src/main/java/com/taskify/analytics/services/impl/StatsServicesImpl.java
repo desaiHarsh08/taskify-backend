@@ -31,14 +31,14 @@ public class StatsServicesImpl implements StatsServices {
     @Override
     public OverallTaskStats getOverallTaskStats() {
         Pageable pageable = PageRequest.of(1, 100);
-        long totalTasks = this.taskInstanceRepository.findAll(pageable).getTotalElements();
+        long totalTasks = this.taskInstanceRepository.findByIsArchived(false, pageable).getTotalElements();
         long customers = this.customerRepository.findAll(pageable).getTotalElements();
 
-        long overdueTasks = this.taskInstanceRepository.findTaskInstancesByOverdue(pageable).getTotalElements();
+        long overdueTasks = this.taskInstanceRepository.findTaskInstancesByOverdueAndIsArchived(pageable, false).getTotalElements();
         System.out.println("overdueTasks: " + overdueTasks);
 
-        long newPumpTasks = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(1L)).getTotalElements();
-        long serviceTask = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(2L)).getTotalElements();
+        long newPumpTasks = this.taskInstanceRepository.findByTaskTemplateAndIsArchived(pageable, new TaskTemplateModel(1L), false).getTotalElements();
+        long serviceTask = this.taskInstanceRepository.findByTaskTemplateAndIsArchived(pageable, new TaskTemplateModel(2L), false).getTotalElements();
 
         return new OverallTaskStats(totalTasks, customers, overdueTasks, newPumpTasks, serviceTask);
     }
@@ -47,7 +47,7 @@ public class StatsServicesImpl implements StatsServices {
     public MonthlyTaskStats getMonthlyTaskStats() {
         Pageable pageable = PageRequest.of(1, 10);
 
-        List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findTasksByYearAndMonth(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+        List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findTasksByYearAndMonthAndIsArchived(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), false);
         long highPriority = taskInstanceModels.stream().filter(t -> t.getPriorityType().equals(PriorityType.HIGH)).toList().size();
         long mediumPriority = taskInstanceModels.stream().filter(t -> t.getPriorityType().equals(PriorityType.MEDIUM)).toList().size();
         long normalPriority = taskInstanceModels.stream().filter(t -> t.getPriorityType().equals(PriorityType.NORMAL)).toList().size();

@@ -92,97 +92,16 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Autowired
     private FieldInstanceServices fieldInstanceServices;
 
-//    @Override
-//    public PageResponse<TaskSummaryDto> getTasksSummary(int pageNumber, Integer pageSize, PriorityType priorityType, Boolean overdueFlag, Boolean pendingFlag) {
-//        System.out.println("In getTaskSummary(), Page no.: " + pageNumber);
-//        Pageable pageable = Helper.getPageable(pageNumber, pageSize);
-//        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
-//
-//        List<CustomerModel> customerModels = new ArrayList<>();
-//
-//        List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
-//
-//        for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
-//            // Fetch the customer name
-//            CustomerModel customerModel = customerModels.stream().filter(c -> c.getId().equals(taskInstanceModel.getCustomer().getId())).findFirst().orElse(null);
-//            if (customerModel == null) {
-//                customerModel = this.customerRepository.findById(taskInstanceModel.getCustomer().getId()).orElse(null);
-//                if (customerModel == null) {
-//                    continue;
-//                }
-//                customerModels.add(customerModel);
-//            }
-//
-//            // Fetch the recent job_number, department and function currently the task is.
-//            String jobNumber = null;
-//            DepartmentType department = null;
-//            String functionName = null;
-//            LocalDateTime lastUpdated = null;
-//            List<FunctionInstanceModel> functionInstanceModels = this.functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
-//            if (!functionInstanceModels.isEmpty()) {
-//                FunctionTemplateModel functionTemplateModel = this.functionTemplateRepository.findById(functionInstanceModels.get(0).getFunctionTemplate().getId()).orElse(null);
-//                if (functionTemplateModel != null) {
-//                    department = functionTemplateModel.getDepartment();
-//                    functionName = functionTemplateModel.getTitle();
-//                    FunctionInstanceModel tmpFnInst = functionInstanceModels.stream().filter(fn -> fn.getClosedAt() != null).findAny().orElse(null);
-//                    if (tmpFnInst != null) {
-//                        lastUpdated = tmpFnInst.getUpdatedAt();
-//                    }
-//
-//                }
-//                // Fetch the job_number
-//                if (taskInstanceModel.getTaskTemplate().getId().equals(2L)) {
-//                    FunctionInstanceModel functionInstanceModel = functionInstanceModels.stream().filter(fn -> fn.getFunctionTemplate().getId().equals(30L)).findFirst().orElse(null);
-//                    if (functionInstanceModel != null) {
-//                        List<FieldInstanceDto> fieldInstanceDtos = this.fieldInstanceServices.getFieldInstancesByFunctionInstanceId(functionInstanceModel.getId());
-//                        for (FieldInstanceDto fieldInstanceDto: fieldInstanceDtos) {
-//                            if (fieldInstanceDto.getFieldTemplateId().equals(48L)) {
-//                                ColumnInstanceDto columnInstanceDto = fieldInstanceDto.getColumnInstances().stream().filter(col -> col.getColumnTemplateId().equals(134L)).findFirst().orElse(null);
-//                                if (columnInstanceDto != null) {
-//                                    jobNumber = columnInstanceDto.getTextValue();
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//
-//            // Add the task_summary
-//            taskSummaryDtos.add(new TaskSummaryDto(
-//                    taskInstanceModel.getAbbreviation(),
-//                    customerModel != null ? customerModel.getName() : null,
-//                    jobNumber,
-//                    department,
-//                    functionName,
-//                    taskInstanceModel.getPriorityType(),
-//                    lastUpdated
-//
-//            ));
-//        }
-//
-//        return new PageResponse<>(
-//                pageNumber,
-//                pageSize,
-//                pageTaskInstance.getTotalPages(),
-//                pageTaskInstance.getTotalElements(),
-//                taskSummaryDtos
-//        );
-//    }
-
-
-
-
-
-
-
-
-
     @Override
     public List<TaskSummaryDto> getTasksSummary(List<TaskInstanceModel> taskInstanceModels) {
         List<TaskSummaryDto> taskSummaryDtos = new ArrayList<>();
 
         for (TaskInstanceModel taskInstanceModel : taskInstanceModels) {
+            // Skip if the task is archived
+            if (taskInstanceModel.isArchived()) {
+                continue;
+            }
+
             // Retrieve the function instances associated with the task instance
             List<FunctionInstanceModel> functionInstanceModels = functionInstanceRepository.findByTaskInstanceOrderByIdDesc(taskInstanceModel);
 
@@ -281,7 +200,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByIsClosed(int pageNumber, Integer pageSize, boolean isClosed) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByIsClosed(pageable, isClosed);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByIsClosedAndIsArchived(pageable, isClosed, false);
 
         return new PageResponse<>(
                 pageNumber,
@@ -295,7 +214,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getDismantleDueTask(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionConditions(pageable);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionConditions(pageable, false);
 
         return new PageResponse<>(
                 pageNumber,
@@ -309,7 +228,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getEstimateDueTask(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionConditions(pageable);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionConditions(pageable, false);
 
         return new PageResponse<>(
                 pageNumber,
@@ -323,7 +242,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getPendingApprovalTask(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionTemplate50(pageable);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionTemplate50(pageable, false);
 
         return new PageResponse<>(
                 pageNumber,
@@ -337,7 +256,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getApprovalStatusTask(int pageNumber, Integer pageSize, boolean status) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionFieldColumnConditions(pageable, status);
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionFieldColumnConditions(pageable, status, false);
 
         return new PageResponse<>(
                 pageNumber,
@@ -352,7 +271,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getAssignedTaskInstances(int pageNumber, Integer pageSize, Long assignedUserId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByAssignedToUser(pageable, new UserModel(assignedUserId));
+        Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findByAssignedToUserAndIsArchived(pageable, new UserModel(assignedUserId), false);
 
         return new PageResponse<>(
                 pageNumber,
@@ -362,96 +281,6 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 this.getTasksSummary(pageTaskInstanceModels.getContent())
         );
     }
-
-//    @Override
-//    public TaskSummaryDto searchTaskInstance(String searchTxt) {
-//        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
-//        System.out.println("searchTxt: " + searchTxt);
-//        System.out.println("found task" + taskInstanceModel + "\n");
-//        if (taskInstanceModel == null) {
-//            System.out.println("in if block");
-//            PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, 10);
-//            for (int i = 0; i < taskSummaryDtoPageResponse.getTotalPages(); i++) {
-//                System.out.println("in loop block");
-//                taskSummaryDtoPageResponse = this.getAllTaskInstances(i + 1, 10);
-//                Collection<TaskSummaryDto> taskSummaryDtos = taskSummaryDtoPageResponse.getContent();
-//                TaskSummaryDto foundTaskSummaryDto = taskSummaryDtos.stream().filter(t ->
-//                        (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-//                                this.customerRepository.existsByNameContainingIgnoreCase(searchTxt) ||
-//                                t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())
-//                ).findFirst().orElse(null);
-//                if (foundTaskSummaryDto != null) {
-//                    System.out.println("Given search:" + searchTxt);
-//                    return foundTaskSummaryDto;
-//                }
-//            }
-//        }
-//        else {
-//            System.out.println("in else block");
-//            List<TaskInstanceModel> taskInstanceModels = new ArrayList<TaskInstanceModel>();
-//            taskInstanceModels.add(taskInstanceModel);
-//            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
-//
-//            return taskSummaryDtos.get(0);
-//        }
-//
-//        System.out.println("throw error");
-//        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
-//    }
-//
-
-
-
-//    @Override
-//    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
-//        System.out.println("searchTxt: " + searchTxt);
-//        System.out.println("count in customers: " + this.customerRepository.countByNameContainingIgnoreCase(searchTxt));
-//
-//        // Check if abbreviation matches
-//        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
-//        if (taskInstanceModel != null) {
-//            System.out.println("Found task by abbreviation");
-//
-//            List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
-//            taskInstanceModels.add(taskInstanceModel);
-//
-//            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
-//
-//            return new PageResponse<>(
-//                    pageNumber,
-//                    pageSize,
-//                    1, // Total pages, since there's only one record
-//                    1, // Total records
-//                    taskSummaryDtos
-//            );
-//        }
-//
-//        System.out.println("Abbreviation not found, performing fallback search");
-//
-//        // Paginated fallback search
-//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
-//        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
-//                .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-//                        this.customerRepository.countByNameContainingIgnoreCase(searchTxt) > 0 ||
-//                        (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
-//                .toList();
-//
-//        if (!filteredContent.isEmpty()) {
-//            System.out.println("Filtered tasks found");
-//            return new PageResponse<>(
-//                    pageNumber,
-//                    pageSize,
-//                    taskSummaryDtoPageResponse.getTotalPages(),
-//                    taskSummaryDtoPageResponse.getTotalRecords(),
-//                    filteredContent
-//            );
-//        }
-//
-//        System.out.println("No match found, throwing error");
-//        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
-//    }
-//
-//
 
     public List<CustomerModel> searchCustomers(String customerName) {
 
@@ -464,72 +293,6 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
         return customers;
     }
-
-
-//    @Override
-//    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
-//        System.out.println("searchTxt: " + searchTxt);
-//
-//        // Search by abbreviation
-//        TaskInstanceModel taskInstanceModel = this.taskInstanceRepository.findByAbbreviation(searchTxt).orElse(null);
-//        if (taskInstanceModel != null) {
-//            System.out.println("Found task by abbreviation");
-//
-//            List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
-//            taskInstanceModels.add(taskInstanceModel);
-//
-//            List<TaskSummaryDto> taskSummaryDtos = this.getTasksSummary(taskInstanceModels);
-//
-//            return new PageResponse<>(
-//                    pageNumber,
-//                    pageSize,
-//                    1, // Total pages, since there's only one record
-//                    1, // Total records
-//                    taskSummaryDtos
-//            );
-//        }
-//
-//        System.out.println("Abbreviation not found, performing fallback search");
-//
-//        // Fetch matching customers
-//        List<CustomerModel> matchingCustomers = this.searchCustomers(searchTxt);
-//        System.out.println("Customers searches found: " + matchingCustomers.size());
-//        List<Long> matchingCustomerIds = matchingCustomers.stream()
-//                .map(CustomerModel::getId)
-//                .toList();
-//
-//        System.out.println(matchingCustomers);
-//        System.out.println(matchingCustomerIds);
-//
-//        // Paginated fallback search
-//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(pageNumber, pageSize);
-//        Collection<TaskSummaryDto> filteredContent = taskSummaryDtoPageResponse.getContent().stream()
-//                .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-//                        (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customerId
-//                        (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
-//                .toList();
-//
-//        if (!filteredContent.isEmpty()) {
-//            System.out.println("Filtered tasks found: -");
-//            for (TaskSummaryDto taskSummaryDto: filteredContent) {
-//                System.out.println(taskSummaryDto.getCustomerId());
-//            }
-//            return new PageResponse<>(
-//                    pageNumber,
-//                    pageSize,
-//                    taskSummaryDtoPageResponse.getTotalPages(),
-//                    taskSummaryDtoPageResponse.getTotalRecords(),
-//                    filteredContent
-//            );
-//        }
-//
-//        System.out.println("No match found, throwing error");
-//        throw new ResourceNotFoundException(ResourceType.TASK, "", searchTxt, false);
-//    }
-
-
-
-
 
     @Override
     public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
@@ -611,12 +374,6 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         );
 
     }
-
-
-
-
-
-
 
     @Override
     public TaskInstanceDto createTaskInstance(TaskInstanceDto taskInstanceDto) {
@@ -704,7 +461,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getAllTaskInstances(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findAll(pageable);
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByIsArchived(false, pageable);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
         return new PageResponse<>(
@@ -719,7 +476,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByTaskTemplateById(int pageNumber, Integer pageSize, Long taskTemplateId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize);
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(taskTemplateId));
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByTaskTemplateAndIsArchived(pageable, new TaskTemplateModel(taskTemplateId), false);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
         return new PageResponse<>(
@@ -733,7 +490,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public List<TaskInstanceDto> getTaskInstancesByCustomerId(Long customerId) {
-        List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findByCustomer(new CustomerModel(customerId));
+        List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findByCustomerAndIsArchived(new CustomerModel(customerId), false);
         if (taskInstanceModels.isEmpty()) {
             return new ArrayList<>();
         }
@@ -744,7 +501,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByPriorityType(int pageNumber, Integer pageSize, PriorityType priorityType) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByPriorityType(pageable, priorityType);
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByPriorityTypeAndIsArchived(pageable, priorityType, false);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
         return new PageResponse<>(
@@ -759,7 +516,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByCreatedByUserId(int pageNumber, Integer pageSize, Long createdByUserId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByCreatedByUser(pageable, new UserModel(createdByUserId));
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByCreatedByUserAndIsArchived(pageable, new UserModel(createdByUserId), false);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
         return new PageResponse<>(
@@ -774,7 +531,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getTaskInstancesByClosedByUserId(int pageNumber, Integer pageSize, Long closedByUserId) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByClosedByUser(pageable, new UserModel(closedByUserId));
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByClosedByUserAndIsArchived(pageable, new UserModel(closedByUserId), false);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
 
         return new PageResponse<>(
@@ -789,7 +546,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public PageResponse<TaskSummaryDto> getOverdueTaskInstances(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findTaskInstancesByOverdue(pageable);
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findTaskInstancesByOverdueAndIsArchived(pageable, false);
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
         System.out.println(pageTaskInstance.getTotalElements());
 
@@ -807,13 +564,13 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstance;
         if (type.equals(DateParamType.CREATED)) {
-            pageTaskInstance = this.taskInstanceRepository.findByCreatedAt(pageable, date);
+            pageTaskInstance = this.taskInstanceRepository.findByCreatedAtAndIsArchived(pageable, date, false);
         }
         else if (type.equals(DateParamType.UPDATED)) {
-            pageTaskInstance = this.taskInstanceRepository.findByUpdatedAt(pageable, date);
+            pageTaskInstance = this.taskInstanceRepository.findByUpdatedAtAndIsArchived(pageable, date, false);
         }
         else {
-            pageTaskInstance = this.taskInstanceRepository.findByClosedAt(pageable, date);
+            pageTaskInstance = this.taskInstanceRepository.findByClosedAtAndIsArchived(pageable, date, false);
         }
 
         List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
@@ -932,13 +689,13 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     @Override
     public boolean deleteTaskInstancesByTaskTemplateId(Long taskTemplateId) {
         Pageable pageable = Helper.getPageable(1);
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(taskTemplateId));
+        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByTaskTemplateAndIsArchived(pageable, new TaskTemplateModel(taskTemplateId), false);
         for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
             this.deleteTaskInstance(taskInstanceModel.getId());
         }
         for (int i = 1; i < pageTaskInstance.getTotalPages(); i++) {
             pageable = Helper.getPageable(i);
-            pageTaskInstance = this.taskInstanceRepository.findByTaskTemplate(pageable, new TaskTemplateModel(taskTemplateId));
+            pageTaskInstance = this.taskInstanceRepository.findByTaskTemplateAndIsArchived(pageable, new TaskTemplateModel(taskTemplateId), false);
             for (TaskInstanceModel taskInstanceModel: pageTaskInstance.getContent()) {
                 this.deleteTaskInstance(taskInstanceModel.getId());
             }
@@ -974,7 +731,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         // Get the month value (already 1-based, no need to add 1)
         String month = String.format("%02d", createdDate.getMonthValue());
         // Fetch all the task created in current month
-        List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findTasksByYearAndMonth(createdDate.getYear(), createdDate.getMonthValue());
+        List<TaskInstanceModel> taskInstanceModels = this.taskInstanceRepository.findTasksByYearAndMonthAndIsArchived(createdDate.getYear(), createdDate.getMonthValue(), false);
 
         int taskCount = 0;
         if (!taskInstanceModels.isEmpty()) {
