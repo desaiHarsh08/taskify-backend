@@ -159,6 +159,7 @@ public class AuthController {
 
     @GetMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String rawPassword, Long id) {
+        System.out.println("rawPassword:" + rawPassword);
         return new ResponseEntity<>(this.userServices.resetPassword(id, rawPassword), HttpStatus.OK);
     }
 

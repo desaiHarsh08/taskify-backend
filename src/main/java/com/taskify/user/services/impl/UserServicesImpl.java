@@ -119,7 +119,7 @@ public class UserServicesImpl implements UserServices {
         UserModel foundUser = this.userRepository.findByEmail(email).orElseThrow(
                 () -> new ResourceNotFoundException(ResourceType.USER, "email", email, false)
         );
-
+        System.out.println("User by email:" + email);
         return this.userModelToDto(foundUser);
     }
 
