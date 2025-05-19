@@ -29,4 +29,8 @@ public class TaskSummaryDto {
 
     private LocalDateTime updatedAt;
 
+    private LocalDateTime receiptNoteCreatedAt;
+
+    private PumpDetailsDto pumpDetails;
+
 }

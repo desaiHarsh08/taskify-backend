@@ -395,6 +395,151 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
             @Param("isArchived") boolean isArchived); // Estimate Due
 
     @Query("""
+    SELECT t FROM TaskInstanceModel t
+    WHERE EXISTS (
+        SELECT 1 FROM FunctionInstanceModel f
+        WHERE f.taskInstance = t
+        AND f.createdAt = (
+            SELECT MAX(f2.createdAt)
+            FROM FunctionInstanceModel f2
+            WHERE f2.taskInstance = t
+        )
+        AND (
+            (f.functionTemplate.id = 50 AND f.closedAt IS NOT NULL)
+            AND NOT EXISTS (
+                SELECT 1 FROM FunctionInstanceModel f3
+                WHERE f3.taskInstance = t
+                AND f3.functionTemplate.id = 32
+            )
+        )
+    )
+    AND t.isArchived = :isArchived
+""")
+    Page<TaskInstanceModel> findTaskInstancesForAwaitingApproval(
+            Pageable pageable,
+            @Param("isArchived") boolean isArchived
+    );
+
+
+    @Query("""
+SELECT t FROM TaskInstanceModel t
+WHERE EXISTS (
+    SELECT 1 FROM FunctionInstanceModel f
+    WHERE f.taskInstance = t
+    AND f.createdAt = (
+        SELECT MAX(f2.createdAt)
+        FROM FunctionInstanceModel f2
+        WHERE f2.taskInstance = t
+    )
+    AND f.functionTemplate.id = 32
+    AND EXISTS (
+        SELECT 1 FROM FieldInstanceModel fe
+        WHERE fe.functionInstance = f
+        AND fe.fieldTemplate.id = 53
+        AND EXISTS (
+            SELECT 1 FROM ColumnInstanceModel c
+            WHERE c.fieldInstance = fe
+            AND c.columnTemplate.id = 18
+            AND c.booleanValue = true
+        )
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM FunctionInstanceModel f3
+        WHERE f3.taskInstance = t
+        AND f3.functionTemplate.id = 45
+    )
+)
+AND t.isArchived = :isArchived
+""")
+    Page<TaskInstanceModel> findTaskInstancesForWorkInProgress(
+            Pageable pageable,
+            @Param("isArchived") boolean isArchived
+    );
+
+    @Query("""
+SELECT t FROM TaskInstanceModel t
+WHERE EXISTS (
+    SELECT 1 FROM FunctionInstanceModel f
+    WHERE f.taskInstance = t
+    AND f.createdAt = (
+        SELECT MAX(f2.createdAt)
+        FROM FunctionInstanceModel f2
+        WHERE f2.taskInstance = t
+    )
+    AND f.functionTemplate.id = 45
+    AND f.closedAt IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM FunctionInstanceModel f3
+        WHERE f3.taskInstance = t
+        AND f3.functionTemplate.id = 71
+    )
+)
+AND t.isArchived = :isArchived
+""")
+    Page<TaskInstanceModel> findTaskInstancesForReady(
+            Pageable pageable,
+            @Param("isArchived") boolean isArchived
+    );
+
+
+    @Query("""
+SELECT t FROM TaskInstanceModel t
+WHERE EXISTS (
+    SELECT 1 FROM FunctionInstanceModel f
+    WHERE f.taskInstance = t
+    AND f.createdAt = (
+        SELECT MAX(f2.createdAt)
+        FROM FunctionInstanceModel f2
+        WHERE f2.taskInstance = t
+    )
+    AND f.functionTemplate.id = 71
+    AND f.closedAt IS NOT NULL
+)
+AND t.isArchived = :isArchived
+""")
+    Page<TaskInstanceModel> findTaskInstancesForPendingBill(
+            Pageable pageable,
+            @Param("isArchived") boolean isArchived
+    );
+
+
+    @Query("""
+SELECT t FROM TaskInstanceModel t
+WHERE EXISTS (
+    SELECT 1 FROM FunctionInstanceModel f
+    WHERE f.taskInstance = t
+    AND f.createdAt = (
+        SELECT MAX(f2.createdAt)
+        FROM FunctionInstanceModel f2
+        WHERE f2.taskInstance = t
+    )
+    AND f.functionTemplate.id = 47
+    AND f.closedAt IS NULL
+)
+AND (
+    NOT EXISTS (
+        SELECT 1 FROM FunctionInstanceModel r
+        WHERE r.taskInstance = t
+        AND r.functionTemplate.id = 52
+    )
+    OR EXISTS (
+        SELECT 1 FROM FunctionInstanceModel r
+        WHERE r.taskInstance = t
+        AND r.functionTemplate.id = 52
+        AND r.closedAt IS NULL
+    )
+)
+AND t.isArchived = :isArchived
+""")
+    Page<TaskInstanceModel> findTaskInstancesForLathe(
+            Pageable pageable,
+            @Param("isArchived") boolean isArchived
+    );
+
+
+
+
+    @Query("""
         SELECT t FROM TaskInstanceModel t
         WHERE EXISTS (
             SELECT 1 FROM FunctionInstanceModel f

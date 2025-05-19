@@ -65,5 +65,7 @@ public interface TaskInstanceServices {
 
     PageResponse<TaskSummaryDto> getApprovalStatusTask(int pageNumber, Integer pageSize, boolean status);
 
+    PageResponse<TaskSummaryDto> customFilters(String filterBy, boolean status, int pageNumber, Integer pageSize);
+
 
 }

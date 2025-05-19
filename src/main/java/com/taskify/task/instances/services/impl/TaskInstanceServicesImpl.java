@@ -108,7 +108,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
             // If no function instances, add basic TaskSummaryDto and continue
             if (functionInstanceModels.isEmpty()) {
 
-                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, null, null);
+                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, null, null,  null,  null);
                 taskSummaryDtos.add(taskSummaryDto);
                 continue;
             }
@@ -122,7 +122,7 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
             // If not found, add basic TaskSummaryDto with first functionInstanceModel ID
             if (functionInstanceModel == null) {
-                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), null);
+                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), null, null, null);
                 taskSummaryDtos.add(taskSummaryDto);
                 continue;
             }
@@ -172,7 +172,21 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                     .orElse(null);
 
             if (columnInstanceDto != null) {
-                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), columnInstanceDto.getTextValue());
+                String pumpMake = getTextValueByColumnId(fieldInstanceDto, 152L);
+                String pumpType = getTextValueByColumnId(fieldInstanceDto, 135L);
+                String stage = getTextValueByColumnId(fieldInstanceDto, 72L);
+                String serialNumber = getTextValueByColumnId(fieldInstanceDto, 153L);
+                String motorMake = getTextValueByColumnId(fieldInstanceDto, 155L);
+                String hp = getTextValueByColumnId(fieldInstanceDto, 73L);
+                String volts = getTextValueByColumnId(fieldInstanceDto, 146L);
+                String phase = getTextValueByColumnId(fieldInstanceDto, 143L);
+
+                PumpDetailsDto pumpDetailsDto = new PumpDetailsDto(
+                        pumpMake, pumpType, stage, serialNumber, motorMake, hp, volts, phase
+                );
+
+
+                TaskSummaryDto taskSummaryDto = createTaskSummaryDto(taskInstanceModel, functionInstanceModels.get(0).getId(), columnInstanceDto.getTextValue(), columnInstanceDto.getCreatedAt(), pumpDetailsDto);
                 if (taskSummaryDto != null) {
                     taskSummaryDtos.add(taskSummaryDto);
                 }
@@ -182,7 +196,22 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         return taskSummaryDtos;
     }
 
-    private TaskSummaryDto createTaskSummaryDto(TaskInstanceModel taskInstanceModel, Long functionInstanceId, String jobNumber) {
+    private String getTextValueByColumnId(FieldInstanceDto fieldInstanceDto, Long columnTemplateId) {
+        if (fieldInstanceDto == null || fieldInstanceDto.getColumnInstances() == null) {
+            return null;
+        }
+
+        return fieldInstanceDto.getColumnInstances().stream()
+                .filter(ci -> columnTemplateId.equals(ci.getColumnTemplateId()))
+                .findFirst()
+                .map(ColumnInstanceDto::getTextValue)
+                .orElse(null);
+    }
+
+
+
+
+    private TaskSummaryDto createTaskSummaryDto(TaskInstanceModel taskInstanceModel, Long functionInstanceId, String jobNumber, LocalDateTime receiptNoteCreatedAt, PumpDetailsDto pumpDetailsDto) {
         return new TaskSummaryDto(
                 taskInstanceModel.getId(),
                 taskInstanceModel.getTaskTemplate().getId(),
@@ -192,7 +221,9 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
                 functionInstanceId,
                 taskInstanceModel.getPriorityType(),
                 taskInstanceModel.getClosedAt(),
-                taskInstanceModel.getUpdatedAt()
+                taskInstanceModel.getUpdatedAt(),
+                receiptNoteCreatedAt,
+                pumpDetailsDto
         );
     }
 
@@ -215,6 +246,55 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
     public PageResponse<TaskSummaryDto> getDismantleDueTask(int pageNumber, Integer pageSize) {
         Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
         Page<TaskInstanceModel> pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionConditions(pageable, false);
+
+        return new PageResponse<>(
+                pageNumber,
+                pageTaskInstanceModels.getSize(),
+                pageTaskInstanceModels.getTotalPages(),
+                pageTaskInstanceModels.getTotalElements(),
+                this.getTasksSummary(pageTaskInstanceModels.getContent())
+        );
+    }
+
+    @Override
+    public PageResponse<TaskSummaryDto> customFilters(String filterBy, boolean status, int pageNumber, Integer pageSize) {
+        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
+        Page<TaskInstanceModel> pageTaskInstanceModels;
+
+        switch (filterBy) {
+            case "Dismantle Due":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionConditions(pageable, false);
+                break;
+            case "Estimate Due":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionConditions(pageable, false);
+                break;
+            case "Pending Approval":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByLastFunctionTemplate50(pageable, false);
+                break;
+            case "Approval Received":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionFieldColumnConditions(pageable, status, false);
+                break;
+            case "Approval Reject":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesByFunctionFieldColumnConditions(pageable, status, false);
+                break;
+            case "Awaiting Approval":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesForAwaitingApproval(pageable, false);
+                break;
+            case "Work in Progress":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesForWorkInProgress(pageable, false);
+                break;
+            case "Ready":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesForReady(pageable, false);
+                break;
+            case "Pending Bills":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesForPendingBill(pageable, false);
+                break;
+            case "Lathe":
+                pageTaskInstanceModels = this.taskInstanceRepository.findTaskInstancesForLathe(pageable, false);
+                break;
+            default:
+                pageTaskInstanceModels = Page.empty(pageable);
+        }
 
         return new PageResponse<>(
                 pageNumber,

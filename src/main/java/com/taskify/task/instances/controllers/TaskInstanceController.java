@@ -255,6 +255,21 @@ public class TaskInstanceController {
         );
     }
 
+    @GetMapping("/custom-filter")
+    public ResponseEntity<?> filterTaskInstance(
+            @RequestParam(name = "filterBy", defaultValue = "Dismantle Due") String by,
+            @RequestParam(defaultValue = "false") boolean status,
+            @RequestParam(name = "page", defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "100") Integer pageSize
+    ) {
+        return new ResponseEntity<>(
+                this.taskInstanceServices.customFilters(by, status, pageNumber, pageSize),
+                HttpStatus.OK
+        );
+    }
+
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTaskInstance(@PathVariable Long id) {
         boolean isDeleted = taskInstanceServices.deleteTaskInstance(id);
