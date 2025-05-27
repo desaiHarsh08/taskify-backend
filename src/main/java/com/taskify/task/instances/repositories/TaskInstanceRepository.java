@@ -402,6 +402,10 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
             WHERE f.taskInstance = t
             AND f.functionTemplate.id = 50
             AND f.closedAt IS NOT NULL
+            AND f.id = (
+                SELECT MAX(f1.id) FROM FunctionInstanceModel f1
+                WHERE f1.taskInstance = t AND f1.functionTemplate.id = 50
+            )
         )
         OR NOT EXISTS (
             SELECT 1 FROM FunctionInstanceModel f2
