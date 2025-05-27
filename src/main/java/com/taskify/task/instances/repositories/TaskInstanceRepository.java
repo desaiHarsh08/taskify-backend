@@ -396,21 +396,17 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
 
     @Query("""
     SELECT t FROM TaskInstanceModel t
-    WHERE EXISTS (
-        SELECT 1 FROM FunctionInstanceModel f
-        WHERE f.taskInstance = t
-        AND f.createdAt = (
-            SELECT MAX(f2.createdAt)
-            FROM FunctionInstanceModel f2
-            WHERE f2.taskInstance = t
+    WHERE (
+        EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f
+            WHERE f.taskInstance = t
+            AND f.functionTemplate.id = 50
+            AND f.closedAt IS NOT NULL
         )
-        AND (
-            (f.functionTemplate.id = 50 AND f.closedAt IS NOT NULL)
-            AND NOT EXISTS (
-                SELECT 1 FROM FunctionInstanceModel f3
-                WHERE f3.taskInstance = t
-                OR f3.functionTemplate.id = 32
-            )
+        OR NOT EXISTS (
+            SELECT 1 FROM FunctionInstanceModel f2
+            WHERE f2.taskInstance = t
+            AND f2.functionTemplate.id = 32
         )
     )
     AND t.isArchived = :isArchived
@@ -419,6 +415,8 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
             Pageable pageable,
             @Param("isArchived") boolean isArchived
     );
+
+
 
 
     @Query("""
