@@ -409,7 +409,7 @@ public interface TaskInstanceRepository extends JpaRepository<TaskInstanceModel,
             AND NOT EXISTS (
                 SELECT 1 FROM FunctionInstanceModel f3
                 WHERE f3.taskInstance = t
-                AND f3.functionTemplate.id = 32
+                OR f3.functionTemplate.id = 32
             )
         )
     )
