@@ -196,6 +196,19 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         return taskSummaryDtos;
     }
 
+    @Override
+    public TaskSummaryDto getTaskSummaryByTaskId(Long taskId) {
+        TaskInstanceModel taskInstanceModel = taskInstanceRepository.findById(taskId).orElse(null);
+
+        List<TaskInstanceModel> taskInstanceModels = new ArrayList<>();
+        if (taskInstanceModel != null) {
+            taskInstanceModels.add(taskInstanceModel);
+            return getTasksSummary(taskInstanceModels).get(0);
+        }
+
+        return null;
+    }
+
     private String getTextValueByColumnId(FieldInstanceDto fieldInstanceDto, Long columnTemplateId) {
         if (fieldInstanceDto == null || fieldInstanceDto.getColumnInstances() == null) {
             return null;

@@ -67,5 +67,7 @@ public interface TaskInstanceServices {
 
     PageResponse<TaskSummaryDto> customFilters(String filterBy, boolean status, int pageNumber, Integer pageSize);
 
+    TaskSummaryDto getTaskSummaryByTaskId(Long taskId);
+
 
 }

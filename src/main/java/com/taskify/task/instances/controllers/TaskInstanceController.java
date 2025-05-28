@@ -276,6 +276,12 @@ public class TaskInstanceController {
         return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/task-summary/{id}")
+    public ResponseEntity<?> getTaskSummaryById(@PathVariable Long id) {
+        TaskSummaryDto taskSummaryDto = taskInstanceServices.getTaskSummaryByTaskId(id);
+        return new ResponseEntity<>(taskSummaryDto, HttpStatus.OK);
+    }
+
     @DeleteMapping("/template/{taskTemplateId}")
     public ResponseEntity<Void> deleteTaskInstancesByTaskTemplateId(@PathVariable Long taskTemplateId) {
         boolean isDeleted = taskInstanceServices.deleteTaskInstancesByTaskTemplateId(taskTemplateId);
