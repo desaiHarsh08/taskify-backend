@@ -1,39 +1,15 @@
 package com.taskify.task.instances.dtos;
 
-import com.taskify.common.constants.DepartmentType;
 import com.taskify.common.constants.PriorityType;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+@Mapper(componentModel = "spring")
+public interface TaskSummaryMapper {
 
-@Data
-@AllArgsConstructor
-public class TaskSummaryDto {
+    default TaskSummaryDto toDto(TaskSummaryFlatProjection p) {
+        if (p == null) return null;
 
-    private Long id;
-
-    private Long taskTemplateId;
-
-    private String abbreviation;
-
-    private String jobNumber;
-
-    private Long customerId;
-
-    private Long functionId;
-
-    private PriorityType priorityType = PriorityType.NORMAL;
-
-    private LocalDateTime closedAt;
-
-    private LocalDateTime updatedAt;
-
-    private LocalDateTime receiptNoteCreatedAt;
-
-    private PumpDetailsDto pumpDetails;
-
-    public static TaskSummaryDto fromProjection(TaskSummaryFlatProjection p) {
         PumpDetailsDto pumpDetails = new PumpDetailsDto(
                 p.getPumpMake(),
                 p.getPumpType(),
@@ -52,14 +28,11 @@ public class TaskSummaryDto {
                 p.getJobNumber(),
                 p.getCustomerId(),
                 p.getFunctionId(),
-                p.getPriorityType() != null ? PriorityType.valueOf(p.getPriorityType()) : PriorityType.NORMAL,
+                PriorityType.valueOf(p.getPriorityType()),
                 p.getClosedAt(),
                 p.getUpdatedAt(),
                 p.getReceiptNoteCreatedAt(),
                 pumpDetails
         );
     }
-
-
-
 }

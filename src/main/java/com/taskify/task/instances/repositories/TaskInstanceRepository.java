@@ -240,6 +240,8 @@ package com.taskify.task.instances.repositories;
 
 import com.taskify.common.constants.PriorityType;
 import com.taskify.stakeholders.models.CustomerModel;
+import com.taskify.task.instances.dtos.TaskSummaryFlatDto;
+import com.taskify.task.instances.dtos.TaskSummaryFlatProjection;
 import com.taskify.task.instances.models.TaskInstanceModel;
 import com.taskify.task.templates.models.DropdownTemplateModel;
 import com.taskify.task.templates.models.TaskTemplateModel;
@@ -541,6 +543,9 @@ AND t.isArchived = :isArchived
 
 
 
+
+
+
     @Query("""
         SELECT t FROM TaskInstanceModel t
         WHERE EXISTS (
@@ -554,4 +559,200 @@ AND t.isArchived = :isArchived
     Page<TaskInstanceModel> findTaskInstancesByLastFunctionTemplate50(
             Pageable pageable,
             @Param("isArchived") boolean isArchived); // Pending Approval
+
+
+
+
+
+
+//    @Query(
+//            value = """
+//        SELECT
+//            ti.id AS id,
+//            ti.task_template_id_fk AS taskTemplateId,
+//            ti.abbreviation AS abbreviation,
+//            ti.customer_id_fk AS customerId,
+//            fi.id AS functionId,
+//            ti.priority_type AS priorityType,
+//            ti.closed_at AS closedAt,
+//            ti.updated_at AS updatedAt,
+//            ti.receipt_note_created_at AS receiptNoteCreatedAt,
+//
+//            MAX(CASE WHEN ct.id = 134 THEN ci.text_value END) AS jobNumber,
+//            MAX(CASE WHEN ct.id = 152 THEN ci.text_value END) AS pumpMake,
+//            MAX(CASE WHEN ct.id = 135 THEN ci.text_value END) AS pumpType,
+//            MAX(CASE WHEN ct.id = 72  THEN ci.text_value END) AS stage,
+//            MAX(CASE WHEN ct.id = 153 THEN ci.text_value END) AS serialNumber,
+//            MAX(CASE WHEN ct.id = 155 THEN ci.text_value END) AS motorMake,
+//            MAX(CASE WHEN ct.id = 73  THEN ci.text_value END) AS hp,
+//            MAX(CASE WHEN ct.id = 146 THEN ci.text_value END) AS volts,
+//            MAX(CASE WHEN ct.id = 143 THEN ci.text_value END) AS phase
+//
+//        FROM task_instances ti
+//        LEFT JOIN function_instances fi ON fi.task_instances_id_fk = ti.id
+//        LEFT JOIN function_templates ft ON ft.id = fi.function_template_id_fk AND ft.id = 30
+//        LEFT JOIN field_instances fii ON fii.function_instance_id_fk = fi.id
+//        LEFT JOIN field_templates fit ON fit.id = fii.field_template_id_fk AND fit.id = 48
+//        LEFT JOIN column_instances ci ON ci.field_instance_id_fk = fii.id
+//        LEFT JOIN column_templates ct
+//            ON ct.id = ci.column_template_id_fk
+//            AND ct.id IN (134,152,135,72,153,155,73,146,143)
+//
+//        WHERE ti.is_archived = false
+//
+//        GROUP BY
+//            ti.id,
+//            ti.task_template_id_fk,
+//            ti.abbreviation,
+//            ti.customer_id_fk,
+//            fi.id,
+//            ti.priority_type,
+//            ti.closed_at,
+//            ti.updated_at,
+//            ti.receipt_note_created_at
+//
+//        ORDER BY ti.created_at DESC
+//        """,
+//            nativeQuery = true
+//    )
+//    Page<TaskSummaryFlatDto> findTaskSummaries(Pageable pageable);
+
+
+    @Query(
+            value = """
+            SELECT
+                ti.id AS id,
+                ti.task_template_id_fk AS taskTemplateId,
+                ti.abbreviation AS abbreviation,
+                ti.customer_id_fk AS customerId,
+                fi.id AS functionId,
+                ti.priority_type AS priorityType,
+                ti.closed_at AS closedAt,
+                ti.updated_at AS updatedAt,
+                fi.created_at AS receiptNoteCreatedAt,
+
+                MAX(CASE WHEN ct.id = 134 THEN ci.text_value END) AS jobNumber,
+                MAX(CASE WHEN ct.id = 152 THEN ci.text_value END) AS pumpMake,
+                MAX(CASE WHEN ct.id = 135 THEN ci.text_value END) AS pumpType,
+                MAX(CASE WHEN ct.id = 72  THEN ci.text_value END) AS stage,
+                MAX(CASE WHEN ct.id = 153 THEN ci.text_value END) AS serialNumber,
+                MAX(CASE WHEN ct.id = 155 THEN ci.text_value END) AS motorMake,
+                MAX(CASE WHEN ct.id = 73  THEN ci.text_value END) AS hp,
+                MAX(CASE WHEN ct.id = 146 THEN ci.text_value END) AS volts,
+                MAX(CASE WHEN ct.id = 143 THEN ci.text_value END) AS phase
+
+            FROM (
+                SELECT id
+                FROM task_instances
+                WHERE is_archived = false
+                ORDER BY created_at DESC
+            ) paged_ti
+
+            JOIN task_instances ti ON ti.id = paged_ti.id
+            LEFT JOIN function_instances fi ON fi.task_instances_id_fk = ti.id
+            LEFT JOIN function_templates ft ON ft.id = fi.function_template_id_fk AND ft.id = 30
+            LEFT JOIN field_instances fii ON fii.function_instance_id_fk = fi.id
+            LEFT JOIN field_templates fit ON fit.id = fii.field_template_id_fk AND fit.id = 48
+            LEFT JOIN column_instances ci ON ci.field_instance_id_fk = fii.id
+            LEFT JOIN column_templates ct
+                ON ct.id = ci.column_template_id_fk
+                AND ct.id IN (134,152,135,72,153,155,73,146,143)
+
+            GROUP BY
+                ti.id,
+                ti.task_template_id_fk,
+                ti.abbreviation,
+                ti.customer_id_fk,
+                fi.id,
+                ti.priority_type,
+                ti.closed_at,
+                ti.updated_at,
+                fi.created_at
+
+            ORDER BY ti.created_at DESC
+        """,
+            countQuery = """
+            SELECT COUNT(*)
+            FROM task_instances
+            WHERE is_archived = false
+        """,
+            nativeQuery = true
+    )
+    Page<TaskSummaryFlatProjection> findTaskSummaries(Pageable pageable);
+
+
+
+
+
+    @Query(
+            value = """
+        SELECT
+            ti.id AS id,
+            ti.task_template_id_fk AS taskTemplateId,
+            ti.abbreviation AS abbreviation,
+            ti.customer_id_fk AS customerId,
+            fi.id AS functionId,
+            ti.priority_type AS priorityType,
+            ti.closed_at AS closedAt,
+            ti.updated_at AS updatedAt,
+            fi.created_at AS receiptNoteCreatedAt,
+
+            MAX(CASE WHEN ct.id = 134 THEN ci.text_value END) AS jobNumber,
+            MAX(CASE WHEN ct.id = 152 THEN ci.text_value END) AS pumpMake,
+            MAX(CASE WHEN ct.id = 135 THEN ci.text_value END) AS pumpType,
+            MAX(CASE WHEN ct.id = 72  THEN ci.text_value END) AS stage,
+            MAX(CASE WHEN ct.id = 153 THEN ci.text_value END) AS serialNumber,
+            MAX(CASE WHEN ct.id = 155 THEN ci.text_value END) AS motorMake,
+            MAX(CASE WHEN ct.id = 73  THEN ci.text_value END) AS hp,
+            MAX(CASE WHEN ct.id = 146 THEN ci.text_value END) AS volts,
+            MAX(CASE WHEN ct.id = 143 THEN ci.text_value END) AS phase
+
+        FROM task_instances ti
+        LEFT JOIN function_instances fi ON fi.task_instances_id_fk = ti.id
+        LEFT JOIN function_templates ft ON ft.id = fi.function_template_id_fk AND ft.id = 30
+        LEFT JOIN field_instances fii ON fii.function_instance_id_fk = fi.id
+        LEFT JOIN column_instances ci ON ci.field_instance_id_fk = fii.id
+        LEFT JOIN column_templates ct
+            ON ct.id = ci.column_template_id_fk
+            AND ct.id IN (134,152,135,72,153,155,73,146,143)
+
+        WHERE ti.is_archived = false
+          AND (
+              UPPER(ci.text_value) LIKE CONCAT('%', UPPER(:searchTxt), '%')
+              OR UPPER(ti.abbreviation) LIKE CONCAT('%', UPPER(:searchTxt), '%')
+              OR ti.customer_id_fk IN :customerIds
+          )
+
+        GROUP BY
+            ti.id,
+            ti.task_template_id_fk,
+            ti.abbreviation,
+            ti.customer_id_fk,
+            fi.id,
+            ti.priority_type,
+            ti.closed_at,
+            ti.updated_at,
+            fi.created_at
+
+        ORDER BY ti.created_at DESC
+    """,
+            countQuery = """
+        SELECT COUNT(*)
+        FROM task_instances ti
+        WHERE ti.is_archived = false
+          AND (
+              UPPER(ti.abbreviation) LIKE CONCAT('%', UPPER(:searchTxt), '%')
+              OR ti.customer_id_fk IN :customerIds
+          )
+    """,
+            nativeQuery = true
+    )
+    Page<TaskSummaryFlatProjection> searchTaskSummaries(
+            @Param("searchTxt") String searchTxt,
+            @Param("customerIds") List<Long> customerIds,
+            Pageable pageable
+    );
+
+
+
 }

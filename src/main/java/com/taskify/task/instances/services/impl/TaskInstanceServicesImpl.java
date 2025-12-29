@@ -29,12 +29,14 @@ import com.taskify.user.models.UserModel;
 import com.taskify.user.models.ViewTaskModel;
 import com.taskify.user.repositories.UserRepository;
 import com.taskify.user.repositories.ViewTaskRepository;
+import lombok.RequiredArgsConstructor;
 import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -45,10 +47,14 @@ import java.util.stream.Collectors;
 import static com.taskify.common.utils.Helper.PAGE_SIZE;
 
 @Service
+@RequiredArgsConstructor
 public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    private final TaskSummaryMapper taskSummaryMapper;
+
 
     @Autowired
     private FieldTemplateRepository fieldTemplateRepository;
@@ -387,86 +393,119 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
         return customers;
     }
 
-    @Override
+    private boolean containsIgnoreCase(String source, String searchTxt) {
+        return source != null && source.toLowerCase().contains(searchTxt.toLowerCase());
+    }
+
+
+//    @Override
+//    public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
+//        System.out.println("Search Text: " + searchTxt);
+//
+//        // Step 1: Load the matching customers by given `searchText`
+//        List<CustomerModel> matchingCustomers = this.searchCustomers(searchTxt);
+//
+//        List<Long> matchingCustomerIds = matchingCustomers.stream()
+//                .map(CustomerModel::getId)
+//                .toList();
+//
+//        System.out.println(matchingCustomers);
+//        System.out.println(matchingCustomerIds);
+//
+//        // Step 2: Load all the taskSummary
+//        List<TaskSummaryDto> allTaskSummaryDtos = new ArrayList<>();
+//        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, pageSize);
+//        allTaskSummaryDtos.addAll(taskSummaryDtoPageResponse.getContent());
+//        for (int i = 2; i <= taskSummaryDtoPageResponse.getTotalPages(); i++) {
+//            taskSummaryDtoPageResponse = this.getAllTaskInstances(i, pageSize);
+//            allTaskSummaryDtos.addAll(taskSummaryDtoPageResponse.getContent());
+//        }
+//
+//        System.out.println("Total tasks_summary: " + allTaskSummaryDtos.size());
+//
+//        // Step 3: Perform the filter
+//        Collection<TaskSummaryDto> filteredContent = allTaskSummaryDtos.stream()
+//        .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
+//                (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customer id
+//                (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
+//        .toList();
+//
+//        // Convert filteredContent to a List
+//        List<TaskSummaryDto> filteredList = new ArrayList<>(filteredContent);
+//
+//        // Calculate total records and paginate results
+//        if (!filteredList.isEmpty()) {
+//            int totalRecords = filteredList.size();
+//            int fromIndex = Math.min((pageNumber - 1) * pageSize, totalRecords);
+//            int toIndex = Math.min(fromIndex + pageSize, totalRecords);
+//
+//            System.out.println("Searched task found: " + filteredList.size());
+//            System.out.println("pageNumber: " + pageNumber);
+//            System.out.println("pageSize: " + pageSize);
+//
+//            System.out.println(fromIndex + ", " + toIndex + ", " + totalRecords);
+//
+//            // If the fromIndex is greater than or equal to the totalRecords, no results should be returned
+//            if (fromIndex == toIndex) {
+//                return new PageResponse<>(
+//                        pageNumber,
+//                        pageSize,
+//                        (int) Math.ceil((double) totalRecords / pageSize),
+//                        totalRecords,
+//                        filteredList
+//                );
+//            }
+//            if (fromIndex > totalRecords) {
+//                System.out.println("No tasks found for the requested page.");
+//            }
+//
+//            List<TaskSummaryDto> paginatedTasks = filteredList.subList(fromIndex, toIndex);
+//            return new PageResponse<>(
+//                    pageNumber,
+//                    pageSize,
+//                    (int) Math.ceil((double) totalRecords / pageSize),
+//                    totalRecords,
+//                    paginatedTasks
+//            );
+//        }
+//
+//        return new PageResponse<>(
+//                pageNumber,
+//                pageSize,
+//                (int) 0,
+//                (int) 0,
+//                new ArrayList<TaskSummaryDto>()
+//        );
+//
+//    }
+
+
+
     public PageResponse<TaskSummaryDto> searchTaskInstance(String searchTxt, int pageNumber, int pageSize) {
-        System.out.println("Search Text: " + searchTxt);
-
-        // Step 1: Load the matching customers by given `searchText`
         List<CustomerModel> matchingCustomers = this.searchCustomers(searchTxt);
-
         List<Long> matchingCustomerIds = matchingCustomers.stream()
                 .map(CustomerModel::getId)
                 .toList();
 
-        System.out.println(matchingCustomers);
-        System.out.println(matchingCustomerIds);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
 
-        // Step 2: Load all the taskSummary
-        List<TaskSummaryDto> allTaskSummaryDtos = new ArrayList<>();
-        PageResponse<TaskSummaryDto> taskSummaryDtoPageResponse = this.getAllTaskInstances(1, pageSize);
-        allTaskSummaryDtos.addAll(taskSummaryDtoPageResponse.getContent());
-        for (int i = 2; i <= taskSummaryDtoPageResponse.getTotalPages(); i++) {
-            taskSummaryDtoPageResponse = this.getAllTaskInstances(i, pageSize);
-            allTaskSummaryDtos.addAll(taskSummaryDtoPageResponse.getContent());
-        }
+        Page<TaskSummaryFlatProjection> page = taskInstanceRepository.searchTaskSummaries(searchTxt, matchingCustomerIds, pageable);
 
-        System.out.println("Total tasks_summary: " + allTaskSummaryDtos.size());
-
-        // Step 3: Perform the filter
-        Collection<TaskSummaryDto> filteredContent = allTaskSummaryDtos.stream()
-        .filter(t -> (t.getJobNumber() != null && t.getJobNumber().toUpperCase().contains(searchTxt.toUpperCase())) ||
-                (matchingCustomerIds.contains(t.getCustomerId())) || // Match by customer id
-                (t.getAbbreviation() != null && t.getAbbreviation().toUpperCase().contains(searchTxt.toUpperCase())))
-        .toList();
-
-        // Convert filteredContent to a List
-        List<TaskSummaryDto> filteredList = new ArrayList<>(filteredContent);
-
-        // Calculate total records and paginate results
-        if (!filteredList.isEmpty()) {
-            int totalRecords = filteredList.size();
-            int fromIndex = Math.min((pageNumber - 1) * pageSize, totalRecords);
-            int toIndex = Math.min(fromIndex + pageSize, totalRecords);
-
-            System.out.println("Searched task found: " + filteredList.size());
-            System.out.println("pageNumber: " + pageNumber);
-            System.out.println("pageSize: " + pageSize);
-
-            System.out.println(fromIndex + ", " + toIndex + ", " + totalRecords);
-
-            // If the fromIndex is greater than or equal to the totalRecords, no results should be returned
-            if (fromIndex == toIndex) {
-                return new PageResponse<>(
-                        pageNumber,
-                        pageSize,
-                        (int) Math.ceil((double) totalRecords / pageSize),
-                        totalRecords,
-                        filteredList
-                );
-            }
-            if (fromIndex > totalRecords) {
-                System.out.println("No tasks found for the requested page.");
-            }
-
-            List<TaskSummaryDto> paginatedTasks = filteredList.subList(fromIndex, toIndex);
-            return new PageResponse<>(
-                    pageNumber,
-                    pageSize,
-                    (int) Math.ceil((double) totalRecords / pageSize),
-                    totalRecords,
-                    paginatedTasks
-            );
-        }
+        List<TaskSummaryDto> dtos = page.getContent().stream()
+                .map(TaskSummaryDto::fromProjection)
+                .toList();
 
         return new PageResponse<>(
                 pageNumber,
                 pageSize,
-                (int) 0,
-                (int) 0,
-                new ArrayList<TaskSummaryDto>()
+                page.getTotalPages(),
+                (int) page.getTotalElements(),
+                dtos
         );
-
     }
+
+
+
 
     @Override
     public TaskInstanceDto createTaskInstance(TaskInstanceDto taskInstanceDto) {
@@ -553,17 +592,39 @@ public class TaskInstanceServicesImpl implements TaskInstanceServices {
 
     @Override
     public PageResponse<TaskSummaryDto> getAllTaskInstances(int pageNumber, Integer pageSize) {
-        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
-        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByIsArchived(false, pageable);
-        List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
+//        Pageable pageable = Helper.getPageable(pageNumber, pageSize, SortingType.DESC, "updatedAt");
+//        Page<TaskInstanceModel> pageTaskInstance = this.taskInstanceRepository.findByIsArchived(false, pageable);
+//        List<TaskInstanceModel> taskInstanceModels = pageTaskInstance.getContent();
+//
+//        return new PageResponse<>(
+//                pageNumber,
+//                pageSize,
+//                pageTaskInstance.getTotalPages(),
+//                pageTaskInstance.getTotalElements(),
+//                this.getTasksSummary(taskInstanceModels)
+//        );
+
+
+
+
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+
+        Page<TaskSummaryFlatProjection> page = taskInstanceRepository.findTaskSummaries(pageable);
+
+        // Convert projection -> DTO
+        List<TaskSummaryDto> content = page.getContent()
+                .stream()
+                .map(taskSummaryMapper::toDto)
+                .toList();
 
         return new PageResponse<>(
                 pageNumber,
                 pageSize,
-                pageTaskInstance.getTotalPages(),
-                pageTaskInstance.getTotalElements(),
-                this.getTasksSummary(taskInstanceModels)
+                page.getTotalPages(),
+                (int) page.getTotalElements(),
+                content
         );
+
     }
 
     @Override
