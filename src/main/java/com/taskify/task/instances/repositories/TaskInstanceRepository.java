@@ -708,7 +708,7 @@ AND t.isArchived = :isArchived
             MAX(CASE WHEN ct.id = 143 THEN ci.text_value END) AS phase
 
         FROM task_instances ti
-        LEFT JOIN function_instances fi ON fi.task_instances_id_fk = ti.id
+        LEFT JOIN function_instances fi ON fi.task_instances_id_fk = ti.id AND fi.function_template_id_fk = 30
         LEFT JOIN function_templates ft ON ft.id = fi.function_template_id_fk AND ft.id = 30
         LEFT JOIN field_instances fii ON fii.function_instance_id_fk = fi.id
         LEFT JOIN column_instances ci ON ci.field_instance_id_fk = fii.id
